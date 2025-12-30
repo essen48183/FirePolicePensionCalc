@@ -1,0 +1,465 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3845B1BB2F04790500EA1FF1 /* EmployeeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3845B1BA2F04790500EA1FF1 /* EmployeeListView.swift */; };
+		3887E1942F04A10600680114 /* FACCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E1932F04A10600680114 /* FACCalculatorView.swift */; };
+		3887E1962F04B25500680114 /* PensionOptionDescriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E1952F04B25500680114 /* PensionOptionDescriptionView.swift */; };
+		38A34C8D2F047EB800B97263 /* EmployeeEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A34C8C2F047EB800B97263 /* EmployeeEditView.swift */; };
+		A1000001 /* FirePolicePensionCalcApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002 /* FirePolicePensionCalcApp.swift */; };
+		A1000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004 /* ContentView.swift */; };
+		A1000005 /* Employee.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000006 /* Employee.swift */; };
+		A1000007 /* PensionConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000008 /* PensionConfiguration.swift */; };
+		A1000009 /* PensionCalculatorDisbursements.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000010 /* PensionCalculatorDisbursements.swift */; };
+		A1000011 /* PensionCalculatorPaymentsInto.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000012 /* PensionCalculatorPaymentsInto.swift */; };
+		A1000013 /* PensionCalculatorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000014 /* PensionCalculatorService.swift */; };
+		A1000015 /* EmployeeDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000016 /* EmployeeDataLoader.swift */; };
+		A1000017 /* employees.json in Resources */ = {isa = PBXBuildFile; fileRef = A1000018 /* employees.json */; };
+		A1000019 /* ConfigurationPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020 /* ConfigurationPersistence.swift */; };
+		A1000021 /* PensionCalculatorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022 /* PensionCalculatorViewModel.swift */; };
+		A1000023 /* ConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024 /* ConfigurationView.swift */; };
+		A1000025 /* SystemResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026 /* SystemResultsView.swift */; };
+		A1000027 /* IndividualResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000028 /* IndividualResultsView.swift */; };
+		A1000029 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000030 /* Assets.xcassets */; };
+		A1000032 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000031 /* Preview Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		3845B1BA2F04790500EA1FF1 /* EmployeeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmployeeListView.swift; sourceTree = "<group>"; };
+		3887E1932F04A10600680114 /* FACCalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FACCalculatorView.swift; sourceTree = "<group>"; };
+		3887E1952F04B25500680114 /* PensionOptionDescriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PensionOptionDescriptionView.swift; sourceTree = "<group>"; };
+		38A34C8C2F047EB800B97263 /* EmployeeEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmployeeEditView.swift; sourceTree = "<group>"; };
+		A1000000 /* FirePolicePensionCalc.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FirePolicePensionCalc.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1000002 /* FirePolicePensionCalcApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirePolicePensionCalcApp.swift; sourceTree = "<group>"; };
+		A1000004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A1000006 /* Employee.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Employee.swift; sourceTree = "<group>"; };
+		A1000008 /* PensionConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PensionConfiguration.swift; sourceTree = "<group>"; };
+		A1000010 /* PensionCalculatorDisbursements.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PensionCalculatorDisbursements.swift; sourceTree = "<group>"; };
+		A1000012 /* PensionCalculatorPaymentsInto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PensionCalculatorPaymentsInto.swift; sourceTree = "<group>"; };
+		A1000014 /* PensionCalculatorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PensionCalculatorService.swift; sourceTree = "<group>"; };
+		A1000016 /* EmployeeDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmployeeDataLoader.swift; sourceTree = "<group>"; };
+		A1000018 /* employees.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = employees.json; sourceTree = "<group>"; };
+		A1000020 /* ConfigurationPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationPersistence.swift; sourceTree = "<group>"; };
+		A1000022 /* PensionCalculatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PensionCalculatorViewModel.swift; sourceTree = "<group>"; };
+		A1000024 /* ConfigurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationView.swift; sourceTree = "<group>"; };
+		A1000026 /* SystemResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemResultsView.swift; sourceTree = "<group>"; };
+		A1000028 /* IndividualResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndividualResultsView.swift; sourceTree = "<group>"; };
+		A1000030 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A1000031 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		A1000033 /* FirePolicePensionCalc.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FirePolicePensionCalc.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A1000034 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A1000035 = {
+			isa = PBXGroup;
+			children = (
+				A1000036 /* FirePolicePensionCalc */,
+				A1000037 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A1000036 /* FirePolicePensionCalc */ = {
+			isa = PBXGroup;
+			children = (
+				A1000002 /* FirePolicePensionCalcApp.swift */,
+				A1000038 /* Models */,
+				A1000039 /* Calculators */,
+				A1000040 /* Services */,
+				A1000041 /* Data */,
+				A1000042 /* ViewModels */,
+				A1000043 /* Views */,
+				A1000030 /* Assets.xcassets */,
+				A1000044 /* Preview Content */,
+				A1000033 /* FirePolicePensionCalc.entitlements */,
+			);
+			path = FirePolicePensionCalc;
+			sourceTree = "<group>";
+		};
+		A1000037 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A1000000 /* FirePolicePensionCalc.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A1000038 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A1000006 /* Employee.swift */,
+				A1000008 /* PensionConfiguration.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A1000039 /* Calculators */ = {
+			isa = PBXGroup;
+			children = (
+				A1000010 /* PensionCalculatorDisbursements.swift */,
+				A1000012 /* PensionCalculatorPaymentsInto.swift */,
+			);
+			path = Calculators;
+			sourceTree = "<group>";
+		};
+		A1000040 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A1000014 /* PensionCalculatorService.swift */,
+				A1000020 /* ConfigurationPersistence.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A1000041 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				A1000016 /* EmployeeDataLoader.swift */,
+				A1000018 /* employees.json */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		A1000042 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				A1000022 /* PensionCalculatorViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		A1000043 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				3887E1952F04B25500680114 /* PensionOptionDescriptionView.swift */,
+				3887E1932F04A10600680114 /* FACCalculatorView.swift */,
+				38A34C8C2F047EB800B97263 /* EmployeeEditView.swift */,
+				3845B1BA2F04790500EA1FF1 /* EmployeeListView.swift */,
+				A1000004 /* ContentView.swift */,
+				A1000024 /* ConfigurationView.swift */,
+				A1000026 /* SystemResultsView.swift */,
+				A1000028 /* IndividualResultsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A1000044 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				A1000031 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A1000045 /* FirePolicePensionCalc */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1000046 /* Build configuration list for PBXNativeTarget "FirePolicePensionCalc" */;
+			buildPhases = (
+				A1000047 /* Sources */,
+				A1000034 /* Frameworks */,
+				A1000048 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FirePolicePensionCalc;
+			productName = FirePolicePensionCalc;
+			productReference = A1000000 /* FirePolicePensionCalc.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A1000049 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = A1000050 /* Build configuration list for PBXProject "FirePolicePensionCalc" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A1000035;
+			productRefGroup = A1000037 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A1000045 /* FirePolicePensionCalc */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A1000048 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000032 /* Preview Assets.xcassets in Resources */,
+				A1000029 /* Assets.xcassets in Resources */,
+				A1000017 /* employees.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A1000047 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3887E1962F04B25500680114 /* PensionOptionDescriptionView.swift in Sources */,
+				A1000001 /* FirePolicePensionCalcApp.swift in Sources */,
+				3887E1942F04A10600680114 /* FACCalculatorView.swift in Sources */,
+				A1000003 /* ContentView.swift in Sources */,
+				A1000005 /* Employee.swift in Sources */,
+				A1000007 /* PensionConfiguration.swift in Sources */,
+				38A34C8D2F047EB800B97263 /* EmployeeEditView.swift in Sources */,
+				A1000009 /* PensionCalculatorDisbursements.swift in Sources */,
+				A1000011 /* PensionCalculatorPaymentsInto.swift in Sources */,
+				A1000013 /* PensionCalculatorService.swift in Sources */,
+				A1000015 /* EmployeeDataLoader.swift in Sources */,
+				3845B1BB2F04790500EA1FF1 /* EmployeeListView.swift in Sources */,
+				A1000019 /* ConfigurationPersistence.swift in Sources */,
+				A1000021 /* PensionCalculatorViewModel.swift in Sources */,
+				A1000023 /* ConfigurationView.swift in Sources */,
+				A1000025 /* SystemResultsView.swift in Sources */,
+				A1000027 /* IndividualResultsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A1000051 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A1000052 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A1000053 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = FirePolicePensionCalc/FirePolicePensionCalc.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"FirePolicePensionCalc/Preview Content\"";
+				DEVELOPMENT_TEAM = 265A396GQA;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pension Calculator";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.firepolicepensioncalc.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A1000054 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = FirePolicePensionCalc/FirePolicePensionCalc.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"FirePolicePensionCalc/Preview Content\"";
+				DEVELOPMENT_TEAM = 265A396GQA;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pension Calculator";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.firepolicepensioncalc.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A1000046 /* Build configuration list for PBXNativeTarget "FirePolicePensionCalc" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1000053 /* Debug */,
+				A1000054 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1000050 /* Build configuration list for PBXProject "FirePolicePensionCalc" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1000051 /* Debug */,
+				A1000052 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A1000049 /* Project object */;
+}

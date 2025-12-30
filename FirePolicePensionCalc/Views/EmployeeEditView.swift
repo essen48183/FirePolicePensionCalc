@@ -1,0 +1,311 @@
+//
+//  EmployeeEditView.swift
+//  FirePolicePensionCalc
+//
+//  View for editing employee data
+//
+
+import SwiftUI
+
+struct EditableEmployee: Identifiable, Equatable {
+    var id: Int
+    var name: String
+    var hiredYear: Int
+    var dateOfBirth: Int
+    var spouseDateOfBirth: Int
+    
+    static func == (lhs: EditableEmployee, rhs: EditableEmployee) -> Bool {
+        return lhs.id == rhs.id &&
+               lhs.name == rhs.name &&
+               lhs.hiredYear == rhs.hiredYear &&
+               lhs.dateOfBirth == rhs.dateOfBirth &&
+               lhs.spouseDateOfBirth == rhs.spouseDateOfBirth
+    }
+    
+    init(from employee: Employee) {
+        self.id = employee.id
+        self.name = employee.name
+        self.hiredYear = employee.hiredYear
+        self.dateOfBirth = employee.dateOfBirth
+        self.spouseDateOfBirth = employee.spouseDateOfBirth
+    }
+    
+    init(id: Int, name: String, hiredYear: Int, dateOfBirth: Int, spouseDateOfBirth: Int) {
+        self.id = id
+        self.name = name
+        self.hiredYear = hiredYear
+        self.dateOfBirth = dateOfBirth
+        self.spouseDateOfBirth = spouseDateOfBirth
+    }
+    
+    func toEmployee() -> Employee {
+        Employee(
+            id: id,
+            name: name,
+            hiredYear: hiredYear,
+            dateOfBirth: dateOfBirth,
+            spouseDateOfBirth: spouseDateOfBirth
+        )
+    }
+}
+
+struct EmployeeEditView: View {
+    @ObservedObject var viewModel: PensionCalculatorViewModel
+    @Environment(\.dismiss) var dismiss
+    
+    @State private var editedEmployees: [EditableEmployee]
+    @State private var originalEmployees: [EditableEmployee]
+    @State private var showValidationError = false
+    @State private var validationErrorMessage = ""
+    @State private var showSaveChangesAlert = false
+    
+    init(viewModel: PensionCalculatorViewModel) {
+        self.viewModel = viewModel
+        let initialEmployees = viewModel.employees.map { EditableEmployee(from: $0) }
+        _editedEmployees = State(initialValue: initialEmployees)
+        _originalEmployees = State(initialValue: initialEmployees)
+    }
+    
+    var body: some View {
+        List {
+            ForEach($editedEmployees) { $employee in
+                Section(header: Text(employee.name.isEmpty ? "New Employee" : employee.name)) {
+                    HStack {
+                        Text("Name")
+                        Spacer()
+                        TextField("Name", text: $employee.name)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 200)
+                    }
+                    
+                    HStack {
+                        Text("Hired Year")
+                        Spacer()
+                        TextField("Hired Year", value: $employee.hiredYear, format: .number)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 100)
+                    }
+                    
+                    HStack {
+                        Text("Date of Birth")
+                        Spacer()
+                        TextField("Date of Birth", value: $employee.dateOfBirth, format: .number)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 100)
+                    }
+                    
+                    HStack {
+                        HStack(spacing: 4) {
+                            Text("Spouse DOB")
+                            Image(systemName: "info.circle")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                                .help("Enter zero for no spouse")
+                        }
+                        Spacer()
+                        TextField("0 for no spouse", value: $employee.spouseDateOfBirth, format: .number)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 100)
+                    }
+                }
+            }
+            .onDelete { indexSet in
+                editedEmployees.remove(atOffsets: indexSet)
+            }
+            .onChange(of: editedEmployees) { _ in
+                // Track changes when employees are modified
+            }
+        }
+        .navigationTitle("Edit Employees")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                HStack(spacing: 16) {
+                    Button(action: {
+                        if hasUnsavedChanges() {
+                            showSaveChangesAlert = true
+                        } else {
+                            dismiss()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                    }
+                    Button(action: addNewEmployee) {
+                        HStack {
+                            Image(systemName: "plus")
+                            Text("Add")
+                        }
+                    }
+                }
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Save") {
+                    if validateEmployees() {
+                        saveChanges()
+                    }
+                }
+            }
+        }
+        .alert("Validation Error", isPresented: $showValidationError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(validationErrorMessage)
+        }
+        .alert("Save Changes?", isPresented: $showSaveChangesAlert) {
+            Button("Save") {
+                if validateEmployees() {
+                    saveChanges()
+                } else {
+                    // If validation fails, show validation error instead
+                    showSaveChangesAlert = false
+                }
+            }
+            Button("Discard Changes", role: .destructive) {
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("You have unsaved changes. Would you like to save them before leaving?")
+        }
+    }
+    
+    private func addNewEmployee() {
+        let newId = getNextAvailableId()
+        let newEmployee = EditableEmployee(
+            id: newId,
+            name: "",
+            hiredYear: Calendar.current.component(.year, from: Date()),
+            dateOfBirth: 1990,
+            spouseDateOfBirth: 0
+        )
+        editedEmployees.insert(newEmployee, at: 0)
+    }
+    
+    private func getNextAvailableId() -> Int {
+        let allIds = Set(editedEmployees.map { $0.id })
+        let existingIds = Set(viewModel.employees.map { $0.id })
+        let maxId = (allIds.union(existingIds)).max() ?? 0
+        return maxId + 1
+    }
+    
+    private func hasUnsavedChanges() -> Bool {
+        // Check if employees were added or removed
+        if editedEmployees.count != originalEmployees.count {
+            return true
+        }
+        
+        // Check if any employee data was modified
+        let originalMap = Dictionary(uniqueKeysWithValues: originalEmployees.map { ($0.id, $0) })
+        
+        for editedEmployee in editedEmployees {
+            if let originalEmployee = originalMap[editedEmployee.id] {
+                if editedEmployee.name != originalEmployee.name ||
+                   editedEmployee.hiredYear != originalEmployee.hiredYear ||
+                   editedEmployee.dateOfBirth != originalEmployee.dateOfBirth ||
+                   editedEmployee.spouseDateOfBirth != originalEmployee.spouseDateOfBirth {
+                    return true
+                }
+            } else {
+                // New employee (not in original list)
+                return true
+            }
+        }
+        
+        // Check if any original employees were deleted
+        let editedIds = Set(editedEmployees.map { $0.id })
+        for originalEmployee in originalEmployees {
+            if !editedIds.contains(originalEmployee.id) {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    private func validateEmployees() -> Bool {
+        for (index, employee) in editedEmployees.enumerated() {
+            if employee.name.trimmingCharacters(in: .whitespaces).isEmpty {
+                validationErrorMessage = "Employee at position \(index + 1) is missing a name."
+                showValidationError = true
+                return false
+            }
+            
+            if employee.hiredYear <= 0 {
+                validationErrorMessage = "Employee '\(employee.name)' is missing a valid hire year."
+                showValidationError = true
+                return false
+            }
+            
+            if employee.dateOfBirth <= 0 {
+                validationErrorMessage = "Employee '\(employee.name)' is missing a valid date of birth."
+                showValidationError = true
+                return false
+            }
+        }
+        return true
+    }
+    
+    private func saveChanges() {
+        // Generate IDs for any new employees (those with ID 0 or negative)
+        // We need to do this iteratively to avoid conflicts
+        var nextId = getNextAvailableId()
+        for i in 0..<editedEmployees.count {
+            if editedEmployees[i].id <= 0 {
+                editedEmployees[i].id = nextId
+                nextId += 1
+            }
+        }
+        
+        // Convert editable employees back to Employee structs
+        let updatedEmployees = editedEmployees.map { $0.toEmployee() }
+        
+        // Separate existing and new employees
+        let existingIds = Set(viewModel.employees.map { $0.id })
+        var newEmployees: [Employee] = []
+        var employeesToUpdate: [Employee] = []
+        
+        for employee in updatedEmployees {
+            if existingIds.contains(employee.id) {
+                employeesToUpdate.append(employee)
+            } else {
+                newEmployees.append(employee)
+            }
+        }
+        
+        // Update existing employees
+        for employee in employeesToUpdate {
+            viewModel.updateEmployee(employee)
+        }
+        
+        // Add new employees
+        for employee in newEmployees {
+            viewModel.addEmployee(employee)
+        }
+        
+        // Remove any employees that were deleted
+        let editedIds = Set(editedEmployees.map { $0.id })
+        let toDelete = viewModel.employees.filter { !editedIds.contains($0.id) }
+        for employee in toDelete {
+            if let index = viewModel.employees.firstIndex(where: { $0.id == employee.id }) {
+                viewModel.deleteEmployees(at: IndexSet([index]))
+            }
+        }
+        
+        // Reload employees to ensure sync
+        viewModel.loadEmployees()
+        
+        // Update original employees to reflect saved state
+        originalEmployees = editedEmployees
+        
+        dismiss()
+    }
+}
+
+
