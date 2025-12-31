@@ -25,27 +25,27 @@ enum PensionOption: Int, Codable, CaseIterable {
 
 struct PensionConfiguration: Codable {
     // Wage inputs
-    var baseWage: Double = 87000
-    var facWage: Double = 97000
+    var baseWage: Double = 85000
+    var facWage: Double = 98000
     
     // Multiplier settings
     var multiplier: Double = 2.5 // percentage
     var multiplierBasedOnFAC: Bool = true
     
     // COLA settings
-    var isColaCompounding: Bool = true
-    var colaNumber: Int = 3
+    var isColaCompounding: Bool = false
+    var colaNumber: Int = 2
     var colaSpacing: Int = 5 // years apart
-    var colaPercent: Double = 8 // percentage
+    var colaPercent: Double = 6 // percentage
     
     // Retirement eligibility
-    var retirementAge: Int = 60
-    var careerYearsService: Int = 25
-    var minAgeForYearsService: Int = 55
+    var retirementAge: Int = 55
+    var careerYearsService: Int = 20
+    var minAgeForYearsService: Int = 50
     
     // Economic assumptions
     var expectedFutureInflationRate: Double = 2.63 // percentage
-    var expectedSystemFutureRateReturn: Double = 7.25 // percentage
+    var expectedSystemFutureRateReturn: Double = 7.0 // percentage
     var employeeContributionPercent: Double = 5.0 // percentage of base wage
     
     // Life expectancy
@@ -53,9 +53,9 @@ struct PensionConfiguration: Codable {
     var deltaExtraLife: Int = 0 // additional years beyond life expectancy
     
     // Fictional new hire (for individual calculations)
-    var fictionalNewHireAge: Int = 30
+    var fictionalNewHireAge: Int = 25
     var fictionalSpouseAgeDiff: Int = -2
-    var spouseReductionPercent: Double = 80.0 // percentage
+    var spouseReductionPercent: Double = 80.0 // percentage (deprecated - calculated based on pension option)
     var pensionOption: PensionOption = .option3 // Default to option 3
     
     // System-wide settings
