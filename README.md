@@ -21,15 +21,25 @@ This application calculates pension benefits and required contributions for fire
 - **Data Persistence**: All settings automatically saved and restored
 
 ### Calculations
-- **Individual Pension Calculations**: Calculate benefits for fictional new hires
-- **System-Wide Calculations**: Aggregate calculations across all employees
+- **Individual Pension Calculations**: Calculate benefits for a fictional new hire with configurable parameters
+- **System-Wide Calculations**: Aggregate calculations across all employees using:
+  - Actual employee hire dates and ages
+  - Actual spouse age differences
+  - Individual retirement eligibility for each employee
+  - Years of service calculations based on actual employment data
+  - Aggregate city contributions and funding verification
 - **Actuarial Equivalence**: All pension options are actuarially equivalent to Option 1
 - **100% Funding Rule**: Ensures 100% of expected lifetime benefits available at retirement
 - **Verification**: Automatic verification that contributions are sufficient (80-120% funding range)
 
 ### Results Display
-- **Individual Results**: Detailed breakdown of retiree and survivor benefits
-- **System Results**: Aggregate city contributions, percent of payroll, and funding verification
+- **Individual Results**: Detailed breakdown of retiree and survivor benefits for a fictional new hire
+- **System Results**: Aggregate calculations across all employees including:
+  - Total city contributions required
+  - Total employee contributions
+  - Annual city payments as percent of payroll
+  - Funding verification (total available vs. total needed at retirement)
+  - Surplus/deficit calculations
 - **Buying Power Adjustments**: All costs adjusted to today's buying power
 - **COLA Information**: Expected COLA increases displayed
 
@@ -128,16 +138,37 @@ See [ACTUARIAL_RULE.md](ACTUARIAL_RULE.md) and [CALCULATION_FLOW.md](CALCULATION
 - Inflation adjustments (buying power)
 - Actuarial equivalence across all pension options
 
+### Individual vs. System-Wide Calculations
+
+**Individual Calculations:**
+- Uses a fictional new hire with configurable parameters
+- Useful for "what-if" scenarios and understanding benefit structures
+- Shows detailed breakdown for a single employee
+
+**System-Wide Calculations:**
+- Uses actual employee data from `employees.json`:
+  - Each employee's hire date and current age
+  - Each employee's spouse age difference
+  - Individual years of service calculations
+  - Individual retirement eligibility based on actual data
+- Calculates aggregate requirements:
+  - Sum of all employee contributions (with individual FV calculations)
+  - Sum of all city contributions needed
+  - Total annual city payments as percent of payroll
+  - System-wide funding verification
+
 ### Contributions
 - Employee contributions: Percentage of base wage (default 5%)
 - City contributions: Calculated to ensure 100% funding
-- Future value calculations using annuity formulas
+- Future value calculations using annuity formulas (per employee)
 - Present value discounting for today's contribution requirements
+- Aggregate calculations sum individual employee requirements
 
 ### Verification
-- Total available at retirement vs. total needed
+- Total available at retirement vs. total needed (aggregate across all employees)
 - Funding ratio (target: 100%, acceptable range: 80-120%)
-- Percent of payroll calculation
+- Percent of payroll calculation (annual city payments / total payroll)
+- Automatic adjustment to ensure funding within acceptable range
 
 ## Documentation
 
@@ -178,6 +209,15 @@ Both tests should pass and show sufficient funding.
 ## Employee Data
 
 - Employee data is stored in `FirePolicePensionCalc/Data/employees.json`
+- Each employee record includes:
+  - Hire date and current age
+  - Spouse age difference (for survivor benefit calculations)
+  - Years of service (calculated from hire date)
+- System-wide calculations use this actual data to:
+  - Calculate individual retirement eligibility
+  - Determine years to retirement for each employee
+  - Calculate individual contribution requirements
+  - Aggregate all requirements for system-wide totals
 - Easy to update without recompiling
 - JSON format matches the Employee struct exactly
 
