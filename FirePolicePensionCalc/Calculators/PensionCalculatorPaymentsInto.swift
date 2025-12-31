@@ -9,14 +9,15 @@ import Foundation
 
 class PensionCalculatorPaymentsInto {
     
-    /// Calculates the present value of payments needed to fund a retirement benefit
+    /// Calculates the present value of city contributions needed to fund a retirement benefit
+    /// ACTUARIAL RULE: Amount needed at retirement is 100% of expected lifetime benefits (full sum, no discounting)
     /// - Parameters:
     ///   - verbose: Whether to print detailed output
-    ///   - sumDesiredAtRetirement: Total benefit payout needed (in today's dollars)
+    ///   - sumDesiredAtRetirement: Amount needed at retirement (100% of lifetime benefits in nominal dollars)
     ///   - initialBalance: Starting balance in the fund
-    ///   - totalEmployeeContribution: Total employee contributions over career
+    ///   - totalEmployeeContribution: Total employee contributions over career (nominal sum)
     ///   - facWage: Final average compensation wage
-    ///   - expectedInterestRate: Expected annual investment return (as percentage)
+    ///   - expectedInterestRate: Expected annual investment return during accumulation (as percentage)
     ///   - expectedInflationRate: Expected annual inflation rate (as percentage)
     ///   - yearsInvesting: Years of service before retirement
     ///   - yearsRetired: Years receiving pension
@@ -42,18 +43,43 @@ class PensionCalculatorPaymentsInto {
         // Calculate real rate of return (after inflation)
         let realRateOfReturn = ((1 + interestRate) / (1 + inflationRate)) - 1
         
+        // sumDesiredAtRetirement is the amount needed at retirement (100% of lifetime benefits in nominal dollars)
+        // ACTUARIAL RULE: During retirement, investment returns won't outpace inflation, so we need the full sum
+        // This represents the total of all pension payments (annual payment × years retired)
+        
+        // totalEmployeeContribution is the nominal sum of contributions over career
+        // But we need the future value of those contributions at retirement (they earn interest over time)
+        // Calculate annual employee contribution and its future value at retirement
+        let annualEmployeeContribution = totalEmployeeContribution / Double(yearsInvesting)
+        let employeeContributionsFV = futureValueOfAnnuity(
+            annualPayment: annualEmployeeContribution,
+            interestRate: expectedInterestRate,
+            years: yearsInvesting
+        )
+        
         // Calculate present value needed
-        // PV = FV / (1 + r)^n
-        // Where FV is the amount needed minus employee contributions and initial balance
-        let futureValueNeeded = sumDesiredAtRetirement - initialBalance - totalEmployeeContribution
+        // Amount needed at retirement (nominal) minus employee contributions FV (nominal) minus initial balance
+        // This gives us what the city needs to provide at retirement (nominal)
+        // Then discount back to today using NOMINAL interest rate (not real rate)
+        // The real rate would be used if we were working in today's dollars, but sumDesiredAtRetirement
+        // is already in retirement-date dollars (nominal), so we use nominal rate to discount
+        let futureValueNeeded = sumDesiredAtRetirement - initialBalance - employeeContributionsFV
         let presentValueOfRetirementInput = presentValue(
             futureValue: futureValueNeeded,
-            interestRate: realRateOfReturn * 100.0, // Convert back to percentage for presentValue function
+            interestRate: expectedInterestRate, // Use nominal rate, not real rate
             years: yearsInvesting
         )
         
         if verbose {
-            let annualPayment = presentValueOfRetirementInput / Double(yearsInvesting)
+            // Calculate annual payment using annuity formula: PMT = PV * (r / (1 - (1 + r)^-n))
+            let annualPayment: Double
+            if yearsInvesting > 0 && interestRate > 0 {
+                let discountFactor = pow(1 + interestRate, Double(-yearsInvesting))
+                let annuityFactor = interestRate / (1 - discountFactor)
+                annualPayment = presentValueOfRetirementInput * annuityFactor
+            } else {
+                annualPayment = presentValueOfRetirementInput / Double(yearsInvesting)
+            }
             print("Annual input to retirement system required to fund (per year) for this employee assuming \(String(format: "%.2f", expectedInterestRate))% expected interest rate and \(String(format: "%.2f", expectedInflationRate))% expected inflation: $\(Int(annualPayment)).")
         }
         
@@ -84,27 +110,22 @@ class PensionCalculatorPaymentsInto {
         return annualPayment * ((pow(1 + r, Double(years)) - 1) / r)
     }
     
-    /// Calculate present value of an annuity with inflation-adjusted payments
-    /// This calculates how much is needed at retirement to fund payments that decrease by inflation each year
+    /// Calculate amount needed at retirement to fund pension payments
+    /// ACTUARIAL RULE: We need 100% of expected lifetime benefits at retirement time.
+    /// Once retired, we cannot expect investment returns to outpace inflation.
+    /// Therefore, we calculate the sum of all payments in nominal dollars (no discounting).
+    /// Formula: Amount Needed = PMT * n
+    /// Where PMT is the annual payment, n is the number of years
     static func presentValueOfAnnuityWithInflation(
         initialAnnualPayment: Double,
         interestRate: Double,
         inflationRate: Double,
         years: Int
     ) -> Double {
-        let r = interestRate / 100.0
-        let inf = inflationRate / 100.0
-        var pv = 0.0
-        var currentPayment = initialAnnualPayment
-        
-        for year in 1...years {
-            // Payment in year 'year' (adjusted for inflation from retirement date)
-            currentPayment = currentPayment * (1 - inf)
-            // Discount back to retirement date using investment return rate
-            pv += currentPayment / pow(1 + r, Double(year))
-        }
-        
-        return pv
+        // ACTUARIAL RULE: During retirement, investment returns won't outpace inflation
+        // Therefore, we need the full sum of all payments at retirement (no discounting)
+        // This is a conservative assumption that ensures 100% funding
+        return initialAnnualPayment * Double(years)
     }
     
     /// Verify that employee and employer contributions with expected return rate are sufficient
@@ -145,8 +166,15 @@ class PensionCalculatorPaymentsInto {
             years: yearsInvesting
         )
         
-        // Calculate annual city contribution (present value / years)
-        let annualCityContribution = cityContributionPresentValue / Double(yearsInvesting)
+        // Calculate annual city contribution using annuity formula: PMT = PV * (r / (1 - (1 + r)^-n))
+        let annualCityContribution: Double
+        if yearsInvesting > 0 && interestRate > 0 {
+            let discountFactor = pow(1 + interestRate, Double(-yearsInvesting))
+            let annuityFactor = interestRate / (1 - discountFactor)
+            annualCityContribution = cityContributionPresentValue * annuityFactor
+        } else {
+            annualCityContribution = cityContributionPresentValue / Double(yearsInvesting)
+        }
         
         // Calculate future value of city contributions (annuity)
         let cityContributionsFV = futureValueOfAnnuity(
@@ -158,11 +186,11 @@ class PensionCalculatorPaymentsInto {
         // Total available at retirement
         let totalAvailableAtRetirement = employeeContributionsFV + cityContributionsFV
         
-        // Calculate the present value of the annuity at retirement
-        // This is the amount needed at retirement to fund all future payments
+        // Calculate the amount needed at retirement
+        // ACTUARIAL RULE: 100% of expected lifetime benefits needed (no discounting during retirement)
         let totalNeededAtRetirement = presentValueOfAnnuityWithInflation(
             initialAnnualPayment: initialAnnualPension,
-            interestRate: expectedInterestRate,
+            interestRate: expectedInterestRate, // Used during accumulation phase only
             inflationRate: expectedInflationRate,
             years: yearsRetired
         )

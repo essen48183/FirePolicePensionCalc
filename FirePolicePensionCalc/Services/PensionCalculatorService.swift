@@ -92,17 +92,28 @@ class PensionCalculatorService {
             // Calculate employee contribution (percentage of base wage over career)
             let employeeContribution = config.baseWage * (config.employeeContributionPercent / 100.0) * Double(yearsToRetire)
             
+            // Calculate amount needed at retirement to fund the annuity
+            // ACTUARIAL RULE: We need 100% of expected lifetime benefits at retirement.
+            // Once retired, investment returns won't outpace inflation, so we need the full sum.
+            let yearsRetired = lifeExpectancy - employeeEarliestEligibleRetirementAge
+            let amountNeededAtRetirement = PensionCalculatorPaymentsInto.presentValueOfAnnuityWithInflation(
+                initialAnnualPayment: disbursementResult.initialAnnualPension,
+                interestRate: config.expectedSystemFutureRateReturn, // Used during accumulation phase only
+                inflationRate: config.expectedFutureInflationRate,
+                years: yearsRetired
+            )
+            
             // Calculate city contributions needed
             let cityContribution = PensionCalculatorPaymentsInto.calculateDiscountPayment(
                 verbose: false,
-                sumDesiredAtRetirement: disbursementResult.totalPayout,
+                sumDesiredAtRetirement: amountNeededAtRetirement,
                 initialBalance: 0,
                 totalEmployeeContribution: employeeContribution,
                 facWage: config.facWage,
                 expectedInterestRate: config.expectedSystemFutureRateReturn,
                 expectedInflationRate: config.expectedFutureInflationRate,
                 yearsInvesting: yearsToRetire,
-                yearsRetired: lifeExpectancy - employeeEarliestEligibleRetirementAge,
+                yearsRetired: yearsRetired,
                 compoundsPerYear: 1
             )
             
@@ -121,15 +132,6 @@ class PensionCalculatorService {
                 retirementAge: retirementAge
             ))
         }
-        
-        // Calculate annual city payments
-        // Formula: (totalCityContributions / totalYearsOfService) * employees.count
-        // This gives the average annual payment per employee, multiplied by number of employees
-        let annualCityPayments = (totalCityContributions / Double(totalYearsOfService)) * Double(employees.count)
-        
-        // Calculate percentage of payroll
-        let totalPayroll = annualCityPayments + config.cityAnnualWageAndBonusPayments + config.cityAnnualInsurancePayments
-        let cityAnnualPercentOfPayroll = (annualCityPayments / totalPayroll) * 100.0
         
         // Calculate verification: aggregate future values across all employees
         var totalAvailableAtRetirement: Double = 0
@@ -155,7 +157,16 @@ class PensionCalculatorService {
             )
             
             // Calculate future value of city contributions
-            let annualCityContribution = employeeResult.cityContributions / Double(yearsToRetire)
+            // First calculate the annual payment using annuity formula, then calculate FV
+            let interestRate = config.expectedSystemFutureRateReturn / 100.0
+            let annualCityContribution: Double
+            if yearsToRetire > 0 && interestRate > 0 {
+                let discountFactor = pow(1 + interestRate, Double(-yearsToRetire))
+                let annuityFactor = interestRate / (1 - discountFactor)
+                annualCityContribution = employeeResult.cityContributions * annuityFactor
+            } else {
+                annualCityContribution = employeeResult.cityContributions / Double(yearsToRetire)
+            }
             let cityContributionsFV = PensionCalculatorPaymentsInto.futureValueOfAnnuity(
                 annualPayment: annualCityContribution,
                 interestRate: config.expectedSystemFutureRateReturn,
@@ -164,10 +175,11 @@ class PensionCalculatorService {
             
             totalAvailableAtRetirement += employeeContributionsFV + cityContributionsFV
             
-            // Calculate present value of annuity needed at retirement
+            // Calculate amount needed at retirement
+            // ACTUARIAL RULE: 100% of expected lifetime benefits needed (no discounting during retirement)
             let neededAtRetirement = PensionCalculatorPaymentsInto.presentValueOfAnnuityWithInflation(
                 initialAnnualPayment: employeeResult.initialAnnualPension,
-                interestRate: config.expectedSystemFutureRateReturn,
+                interestRate: config.expectedSystemFutureRateReturn, // Used during accumulation phase only
                 inflationRate: config.expectedFutureInflationRate,
                 years: yearsRetired
             )
@@ -175,8 +187,105 @@ class PensionCalculatorService {
             totalNeededAtRetirement += neededAtRetirement
         }
         
+        // Calculate funding ratio and adjust city contributions to target 100% funding (constrained to 80-120%)
+        let fundingRatio = totalAvailableAtRetirement / totalNeededAtRetirement
+        let minFundingRatio = 0.80
+        let maxFundingRatio = 1.20
+        let targetFundingRatio = 1.0 // Target 100% funding (no shortfall or surplus)
+        
+        // Calculate adjustment factor to bring funding to target (constrained to 80-120% range)
+        let constrainedTargetRatio = min(max(targetFundingRatio, minFundingRatio), maxFundingRatio)
+        let adjustmentFactor = constrainedTargetRatio / fundingRatio
+        
+        // Adjust all city contributions proportionally to achieve target funding
+        let adjustedTotalCityContributions = totalCityContributions * adjustmentFactor
+        
+        // Update employee results with adjusted city contributions
+        let adjustedEmployeeResults = employeeResults.map { result in
+            EmployeeCalculationResult(
+                employee: result.employee,
+                totalDisbursements: result.totalDisbursements,
+                initialAnnualPension: result.initialAnnualPension,
+                cityContributions: result.cityContributions * adjustmentFactor,
+                employeeContributions: result.employeeContributions,
+                yearsToRetire: result.yearsToRetire,
+                retirementAge: result.retirementAge
+            )
+        }
+        
+        // Recalculate total available with adjusted contributions
+        var adjustedTotalAvailableAtRetirement: Double = 0
+        for employeeResult in adjustedEmployeeResults {
+            let employee = employeeResult.employee
+            let yearsToRetire = employeeResult.yearsToRetire
+            let employeeEarliestEligibleRetirementAge = (employee.hiredYear + yearsToRetire) - currentYear + employee.currentAge
+            var yearsRetired = lifeExpectancy + config.deltaExtraLife - employeeEarliestEligibleRetirementAge
+            if yearsRetired < 0 {
+                yearsRetired = 0
+            }
+            
+            let annualEmployeeContribution = config.baseWage * (config.employeeContributionPercent / 100.0)
+            let employeeContributionsFV = PensionCalculatorPaymentsInto.futureValueOfAnnuity(
+                annualPayment: annualEmployeeContribution,
+                interestRate: config.expectedSystemFutureRateReturn,
+                years: yearsToRetire
+            )
+            
+            // Calculate annual payment using annuity formula, then calculate FV
+            let interestRate = config.expectedSystemFutureRateReturn / 100.0
+            let annualCityContribution: Double
+            if yearsToRetire > 0 && interestRate > 0 {
+                let discountFactor = pow(1 + interestRate, Double(-yearsToRetire))
+                let annuityFactor = interestRate / (1 - discountFactor)
+                annualCityContribution = employeeResult.cityContributions * annuityFactor
+            } else {
+                annualCityContribution = employeeResult.cityContributions / Double(yearsToRetire)
+            }
+            let cityContributionsFV = PensionCalculatorPaymentsInto.futureValueOfAnnuity(
+                annualPayment: annualCityContribution,
+                interestRate: config.expectedSystemFutureRateReturn,
+                years: yearsToRetire
+            )
+            
+            adjustedTotalAvailableAtRetirement += employeeContributionsFV + cityContributionsFV
+        }
+        
+        // Update totals with adjusted values
+        totalCityContributions = adjustedTotalCityContributions
+        employeeResults = adjustedEmployeeResults
+        totalAvailableAtRetirement = adjustedTotalAvailableAtRetirement
+        
         let surplus = totalAvailableAtRetirement - totalNeededAtRetirement
-        let isSufficient = surplus >= 0
+        let finalFundingRatio = totalAvailableAtRetirement / totalNeededAtRetirement
+        let isSufficient = finalFundingRatio >= minFundingRatio && finalFundingRatio <= maxFundingRatio
+        
+        // Calculate annual city payments (using adjusted contributions)
+        // For each employee, calculate the annual payment needed to reach the present value target
+        // Using annuity formula: PMT = PV * (r / (1 - (1 + r)^-n))
+        // This calculates the annual payment during accumulation phase (before retirement)
+        var annualCityPayments: Double = 0
+        let interestRate = config.expectedSystemFutureRateReturn / 100.0
+        
+        for employeeResult in employeeResults {
+            let yearsToRetire = employeeResult.yearsToRetire
+            let presentValue = employeeResult.cityContributions
+            
+            if yearsToRetire > 0 && interestRate > 0 {
+                // Calculate annual payment using annuity formula
+                let discountFactor = pow(1 + interestRate, Double(-yearsToRetire))
+                let annuityFactor = interestRate / (1 - discountFactor)
+                let annualPaymentPerEmployee = presentValue * annuityFactor
+                annualCityPayments += annualPaymentPerEmployee
+            } else if yearsToRetire > 0 {
+                // If interest rate is 0, just divide by years
+                annualCityPayments += presentValue / Double(yearsToRetire)
+            }
+        }
+        
+        // Calculate percentage of payroll
+        // Payroll is base wages + insurance, not including pension payments
+        let totalPayroll = config.cityAnnualWageAndBonusPayments + config.cityAnnualInsurancePayments
+        let cityAnnualPercentOfPayroll = (annualCityPayments / totalPayroll) * 100.0
         
         let verificationResult = ContributionVerificationResult(
             totalAvailableAtRetirement: totalAvailableAtRetirement,
@@ -232,17 +341,27 @@ class PensionCalculatorService {
         // Calculate employee contribution (percentage of base wage over career)
         let employeeContribution = config.baseWage * (config.employeeContributionPercent / 100.0) * Double(yearsToRetire)
         
+        // Calculate amount needed at retirement to fund the annuity
+        // ACTUARIAL RULE: 100% of expected lifetime benefits needed (no discounting during retirement)
+        let yearsRetired = lifeExpectancy - retirementAge
+        let amountNeededAtRetirement = PensionCalculatorPaymentsInto.presentValueOfAnnuityWithInflation(
+            initialAnnualPayment: disbursementResult.initialAnnualPension,
+            interestRate: config.expectedSystemFutureRateReturn, // Used during accumulation phase only
+            inflationRate: config.expectedFutureInflationRate,
+            years: yearsRetired
+        )
+        
         // Calculate city contribution
         let cityContribution = PensionCalculatorPaymentsInto.calculateDiscountPayment(
             verbose: true,
-            sumDesiredAtRetirement: disbursementResult.totalPayout,
+            sumDesiredAtRetirement: amountNeededAtRetirement,
             initialBalance: 0,
             totalEmployeeContribution: employeeContribution,
             facWage: config.facWage,
             expectedInterestRate: config.expectedSystemFutureRateReturn,
             expectedInflationRate: config.expectedFutureInflationRate,
             yearsInvesting: yearsToRetire,
-            yearsRetired: lifeExpectancy - retirementAge,
+            yearsRetired: yearsRetired,
             compoundsPerYear: 1
         )
         

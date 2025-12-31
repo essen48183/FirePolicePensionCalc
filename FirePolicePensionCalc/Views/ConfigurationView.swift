@@ -176,7 +176,7 @@ struct ConfigurationView: View {
                         }
                         .buttonStyle(.plain)
                         Spacer()
-                        Picker("Pension Option", selection: $viewModel.config.pensionOption) {
+                        Picker( "",selection: $viewModel.config.pensionOption) {
                             ForEach(PensionOption.allCases, id: \.self) { option in
                                 Text(option.displayName).tag(option)
                             }

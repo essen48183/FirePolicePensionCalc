@@ -58,42 +58,27 @@ let employeeContributionsFV = futureValueOfAnnuity(
     years: yearsOfService
 )
 
-// Calculate what city needs to contribute (using the existing logic)
-// The totalPayout is in today's dollars (sum of inflation-adjusted payments)
-// We need to calculate the present value of an annuity at retirement that will pay out this amount
-// Then discount that back to today
+// Calculate what city needs to contribute
+// ACTUARIAL RULE: We need 100% of expected lifetime benefits at retirement
+// Once retired, investment returns won't outpace inflation, so we need the full sum
 
-// First, calculate the present value of the annuity at retirement
-// The annuity pays out over yearsRetired years, with payments adjusted for inflation
-// We need the PV of this annuity at retirement date, using the investment return rate
-func presentValueOfAnnuity(annualPayment: Double, interestRate: Double, years: Int, inflationRate: Double) -> Double {
-    let r = interestRate / 100.0
-    let inf = inflationRate / 100.0
-    var pv = 0.0
-    var currentPayment = annualPayment
-    for year in 1...years {
-        // Payment in year 'year' (adjusted for inflation from retirement date)
-        currentPayment = currentPayment * (1 - inf)
-        // Discount back to retirement date
-        pv += currentPayment / pow(1 + r, Double(year))
-    }
-    return pv
-}
-
-// Amount needed at retirement to fund the annuity
-let amountNeededAtRetirement = presentValueOfAnnuity(
-    annualPayment: option1Pension,
-    interestRate: expectedReturn,
-    years: yearsRetired,
-    inflationRate: inflationRate
-)
+// Amount needed at retirement (100% of lifetime benefits - full sum, no discounting)
+// Payments are fixed in nominal dollars, so we need: annual payment × years retired
+let amountNeededAtRetirement = option1Pension * Double(yearsRetired)
 
 // Now calculate what city needs to contribute
-// The real rate accounts for inflation
-let realRateOfReturn = ((1 + (expectedReturn / 100.0)) / (1 + (inflationRate / 100.0))) - 1
-let futureValueNeeded = amountNeededAtRetirement - totalEmployeeContribution
-let cityContributionPV = futureValueNeeded / pow(1 + realRateOfReturn, Double(yearsOfService))
-let annualCityContribution = cityContributionPV / Double(yearsOfService)
+// Amount needed at retirement (nominal) minus employee contributions FV (nominal)
+let futureValueNeeded = amountNeededAtRetirement - employeeContributionsFV
+
+// Discount back to today using NOMINAL interest rate (not real rate)
+// The amount needed is in retirement-date dollars (nominal), so we use nominal rate to discount
+let cityContributionPV = futureValueNeeded / pow(1 + (expectedReturn / 100.0), Double(yearsOfService))
+
+// Calculate annual city contribution using annuity formula: PMT = PV * (r / (1 - (1 + r)^-n))
+let interestRate = expectedReturn / 100.0
+let discountFactor = pow(1 + interestRate, Double(-yearsOfService))
+let annuityFactor = interestRate / (1 - discountFactor)
+let annualCityContribution = cityContributionPV * annuityFactor
 
 // Calculate future value of city contributions
 let cityContributionsFV = futureValueOfAnnuity(
@@ -105,7 +90,7 @@ let cityContributionsFV = futureValueOfAnnuity(
 // Total available at retirement
 let totalAvailableAtRetirement = employeeContributionsFV + cityContributionsFV
 
-// Total needed at retirement (present value of annuity)
+// Total needed at retirement (100% of lifetime benefits - full sum)
 let totalNeededAtRetirement = amountNeededAtRetirement
 
 // Results
