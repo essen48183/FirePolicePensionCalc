@@ -285,7 +285,9 @@ struct SystemInformationView: View {
             }
             .navigationTitle("System Information")
             .navigationBarTitleDisplayMode(.large)
-            .alert("Reset All Values?", isPresented: $showResetConfirmation) {
+        }
+        .navigationViewStyle(StackNavigationViewStyle())
+        .alert("Reset All Values?", isPresented: $showResetConfirmation) {
                 Button("Reset", role: .destructive) {
                     resetToDefaults()
                 }
@@ -374,7 +376,6 @@ struct SystemInformationView: View {
                     }
                 }
             }
-        }
     }
     
     private func exportEmployees() {

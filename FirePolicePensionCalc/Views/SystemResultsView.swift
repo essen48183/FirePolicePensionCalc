@@ -21,36 +21,45 @@ struct SystemResultsView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    if viewModel.isLoading {
-                        ProgressView("Calculating...")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding()
-                    } else if let result = viewModel.systemResult {
-                        Group {
-                            Text("System-Wide Results")
-                                .font(.largeTitle)
-                                .bold()
-                            
-                            Text("*All costs projected and adjusted to today's buying power using your specified economic assumptions of expected fund performance and inflation rate")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .padding(.bottom)
-                            
-                            ResultCard(title: "Total Lifetime Benefits", value: result.totalDisbursements, format: .currency)
-                            ResultCard(title: "Total City Contributions", value: result.totalCityContributions, format: .currency)
-                            ResultCard(title: "Total Employee Contributions", value: result.totalEmployeeContributions, format: .currency)
-                            ResultCard(title: "Annual City Payments", value: result.annualCityPayments, format: .currency)
-                            ResultCard(title: "% of Payroll", value: result.cityAnnualPercentOfPayroll, format: .percent)
-                            
-                            if let verification = result.verificationResult {
-                                Divider()
-                                
-                                Text("Contribution Verification")
-                                    .font(.title2)
+            Group {
+                if viewModel.isLoading {
+                    List {
+                        Section {
+                            ProgressView("Calculating...")
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .listRowInsets(EdgeInsets())
+                        }
+                    }
+                } else if let result = viewModel.systemResult {
+                    List {
+                        // Header Section
+                        Section {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("System-Wide Results for All Active Employees")
+                                    .font(.largeTitle)
                                     .bold()
                                 
+                                Text("*All costs projected and adjusted to today's buying power using your specified economic assumptions of expected fund performance and inflation rate")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
+                            .listRowSeparator(.hidden)
+                        }
+                        
+                        // Summary Cards Section
+                        Section {
+                            ResultCard(title: "Total System-wide Lifetime Benefits", value: result.totalDisbursements, format: .currency)
+                            ResultCard(title: "Total Employer Contributions", value: result.totalCityContributions, format: .currency)
+                            ResultCard(title: "Total Employee Contributions", value: result.totalEmployeeContributions, format: .currency)
+                            ResultCard(title: "Annual Employer Payments (active employees)", value: result.annualCityPayments, format: .currency)
+                            ResultCard(title: "% of Payroll (approximately)", value: result.cityAnnualPercentOfPayroll, format: .percent)
+                        }
+                        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                        
+                        // Verification Section
+                        if let verification = result.verificationResult {
+                            Section(header: Text("Contribution Estimate for Active Employees Verification").font(.title2).bold()) {
                                 ResultCard(title: "Total Available at Retirement", value: verification.totalAvailableAtRetirement, format: .currency)
                                 ResultCard(title: "Total Needed at Retirement", value: verification.totalNeededAtRetirement, format: .currency)
                                 
@@ -60,20 +69,19 @@ struct SystemResultsView: View {
                                     ResultCard(title: "Deficit", value: abs(verification.surplus), format: .currency)
                                 }
                             }
-                            
-                            Divider()
-                            
-                            Text("Configuration")
-                                .font(.title2)
-                                .bold()
-                            
+                            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                        }
+                        
+                        // Configuration Section
+                        Section(header: Text("Configuration").font(.title2).bold()) {
                             Text("Employees: \(viewModel.employees.count)")
                             Text("Multiplier: \(viewModel.config.multiplier)%")
                             Text("COLA: \(viewModel.config.colaNumber) adjustments, \(viewModel.config.colaPercent)% every \(viewModel.config.colaSpacing) years")
                             Text("Retirement Age: \(viewModel.config.retirementAge) or \(viewModel.config.careerYearsService) years service")
-                            
-                            Divider()
-                            
+                        }
+                        
+                        // Employee Details Section
+                        Section {
                             HStack {
                                 Text("Employee Details")
                                     .font(.title2)
@@ -92,10 +100,11 @@ struct SystemResultsView: View {
                                     .cornerRadius(8)
                                 }
                             }
-                            .padding(.vertical, 4)
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                             
                             ForEach(getDisplayedEmployees(from: result.employeeResults)) { employeeResult in
                                 EmployeeResultRow(result: employeeResult)
+                                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                             }
                             
                             if result.employeeResults.count > 10 && !showAllEmployees {
@@ -110,20 +119,25 @@ struct SystemResultsView: View {
                                             .font(.caption)
                                     }
                                 }
-                                .padding(.vertical, 8)
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                             }
                         }
-                        .padding()
-                    } else {
-                        Text("Configure settings and tap 'Calculate System Costs' to see results")
-                            .foregroundColor(.secondary)
-                            .padding()
+                    }
+                } else {
+                    List {
+                        Section {
+                            Text("Configure settings and tap 'Calculate System Costs' to see results")
+                                .foregroundColor(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .listRowInsets(EdgeInsets())
+                        }
                     }
                 }
             }
             .navigationTitle("System Results")
             .navigationBarTitleDisplayMode(.inline)
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
 

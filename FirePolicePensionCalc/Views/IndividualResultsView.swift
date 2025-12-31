@@ -12,99 +12,120 @@ struct IndividualResultsView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    if viewModel.isLoading {
-                        ProgressView("Calculating...")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding()
-                    } else if let result = viewModel.individualResult {
-                        Group {
-                            Text("Individual Pension Calculation")
-                                .font(.largeTitle)
-                                .bold()
-                            
-                            Text("*All costs projected and adjusted to today's buying power using your specified economic assumptions of expected fund performance and inflation rate")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .padding(.bottom)
-                            
-                            Text("Individual Calc or Fictional New Hire")
-                                .font(.title2)
-                                .foregroundColor(.secondary)
-                            
-                            // Retiree Benefits Section
+            Group {
+                if viewModel.isLoading {
+                    List {
+                        Section {
+                            ProgressView("Calculating...")
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .listRowInsets(EdgeInsets())
+                        }
+                    }
+                } else if let result = viewModel.individualResult {
+                    List {
+                        // Header Section
+                        Section {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Individual Pension Calculation")
+                                    .font(.largeTitle)
+                                    .bold()
+                                
+                                Text("*All costs projected and adjusted to today's buying power using your specified economic assumptions of expected fund performance and inflation rate")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                
+                                Text("Individual Calc or Fictional New Hire")
+                                    .font(.title2)
+                                    .foregroundColor(.secondary)
+                                    .padding(.top, 4)
+                            }
+                            .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
+                            .listRowSeparator(.hidden)
+                        }
+                        
+                        // Retiree Benefits Section
+                        Section {
                             ResultCard(title: "Initial Annual Pension", value: result.disbursement.initialAnnualPension, format: .currency)
+                            
                             Text("This is \(String(format: "%.1f", calculateRetireePercentOfOption1(result: result)))% of Option 1 annual value.  Final Annual Pension dollar amount won't reduce (may increase with COLA) but will have the reduced today's value buying power of \(formatCurrency(result.disbursement.finalAnnualPension)) at life expectancy date)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                             
                             // Show COLA increases in dollar amount
                             if let colaInfo = calculateCOLAInfo(result: result) {
                                 Text(colaInfo)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
+                                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                             }
                             
                             ResultCard(title: "Total Lifetime Payout", value: result.disbursement.totalPayout, format: .currency)
+                        }
+                        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                        
+                        // Survivor Benefits Section
+                        if result.disbursement.yearsReceivingSpousePension > 0 {
+                            let survivorPercentOfInitial = (result.disbursement.spouseInitialAnnualPension / result.disbursement.initialAnnualPension) * 100.0
                             
-                            // Survivor Benefits Section
-                            if result.disbursement.yearsReceivingSpousePension > 0 {
-                                let survivorPercentOfInitial = (result.disbursement.spouseInitialAnnualPension / result.disbursement.initialAnnualPension) * 100.0
+                            Section {
                                 ResultCard(title: "Survivor's Initial Annual Pension", value: survivorPercentOfInitial, format: .percent)
                                 
                                 if viewModel.config.pensionOption == .option3 {
-                                    // Option 3: Dollar amount is 100% of initial pension plus COLAs from retiree's years, but buying power decreases
-                                    // On day 1 of survivor pension (after retiree's years), dollar amount includes COLAs, but buying power is reduced by inflation
                                     Text("This survivor receives \(String(format: "%.1f", survivorPercentOfInitial))% of the initial annual pension (dollar amount of \(formatCurrency(result.disbursement.spouseInitialAnnualPension)), which includes any COLA increases from the \(result.disbursement.yearsReceivingPension) years the retiree received the pension) for \(result.disbursement.yearsReceivingSpousePension) years. The dollar amount stays at this level (or increases with additional COLA adjustments during survivor years), but the buying power decreases with inflation each year. On the day it starts (after \(result.disbursement.yearsReceivingPension) years of the retiree receiving the pension), the dollar amount paid is \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) which has today's value buying power of \(formatCurrency(result.disbursement.spouseInitialBuyingPower)), and by the final life expectancy year, the final buying power will be \(formatCurrency(result.disbursement.spouseFinalAnnualPension)).")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
+                                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 } else {
                                     Text("This survivor receives \(String(format: "%.1f", survivorPercentOfInitial))% of the initial annual pension for \(result.disbursement.yearsReceivingSpousePension) years, which will have today's value buying power on the day it starts of \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) and final life expectancy year buying power of \(formatCurrency(result.disbursement.spouseFinalAnnualPension))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
+                                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 }
                             }
-                            
-                            // Costs Section
+                            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                        }
+                        
+                        // Costs Section
+                        Section {
                             ResultCard(title: "City Contributions Required", value: result.cityContribution, format: .currency)
                             ResultCard(title: "Employee Contributions Required", value: calculateEmployeeContribution(), format: .currency)
-                            
-                            Divider()
-                            
-                            Text("Retirement Option Details")
-                                .font(.title2)
-                                .bold()
-                            
+                        }
+                        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                        
+                        // Retirement Option Details Section
+                        Section(header: Text("Retirement Option Details").font(.title2).bold()) {
                             Text("Retiree receives \(String(format: "%.1f", calculateRetireePercentOfOption1(result: result)))% of Option 1 annual value for \(result.disbursement.yearsReceivingPension) years")
                             
                             if result.disbursement.yearsReceivingSpousePension > 0 {
                                 Text("Survivor receives \(String(format: "%.1f", calculateSurvivorPercentOfOption1(result: result)))% of Option 1 annual value for \(result.disbursement.yearsReceivingSpousePension) years")
                             }
-                            
-                            Divider()
-                            
-                            Text("Configuration Used")
-                                .font(.title2)
-                                .bold()
-                            
+                        }
+                        
+                        // Configuration Section
+                        Section(header: Text("Configuration Used").font(.title2).bold()) {
                             Text("Hire Age: \(viewModel.config.fictionalNewHireAge)")
                             Text("Base Wage: \(formatCurrency(viewModel.config.baseWage))")
                             Text("FAC Wage: \(formatCurrency(viewModel.config.facWage))")
                             Text("Multiplier: \(viewModel.config.multiplier)%")
                             Text("COLA: \(viewModel.config.colaNumber) adjustments of \(viewModel.config.colaPercent)% every \(viewModel.config.colaSpacing) years")
                         }
-                        .padding()
-                    } else {
-                        Text("Configure settings and tap 'Calculate Pension' to see results")
-                            .foregroundColor(.secondary)
-                            .padding()
+                    }
+                } else {
+                    List {
+                        Section {
+                            Text("Configure settings and tap 'Calculate Pension' to see results")
+                                .foregroundColor(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .listRowInsets(EdgeInsets())
+                        }
                     }
                 }
             }
             .navigationTitle("Individual Results")
             .navigationBarTitleDisplayMode(.inline)
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     private func formatCurrency(_ value: Double) -> String {

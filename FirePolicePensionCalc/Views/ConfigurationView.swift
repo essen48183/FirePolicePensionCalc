@@ -216,6 +216,8 @@ struct ConfigurationView: View {
             }
         .navigationTitle("Pension Calculator")
         .navigationBarTitleDisplayMode(.inline)
+        }
+        .navigationViewStyle(StackNavigationViewStyle())
         .sheet(isPresented: $showFACCalculator) {
             FACCalculatorView(viewModel: viewModel, facWage: $viewModel.config.facWage)
         }
@@ -244,7 +246,6 @@ struct ConfigurationView: View {
         .onChange(of: viewModel.config.fictionalNewHireAge) { _ in handleConfigChange() }
         .onChange(of: viewModel.config.fictionalSpouseAgeDiff) { _ in handleConfigChange() }
         .onChange(of: viewModel.config.pensionOption) { _ in handleConfigChange() }
-        }
     }
     
     private func handleConfigChange() {
