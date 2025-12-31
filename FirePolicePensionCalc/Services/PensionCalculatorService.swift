@@ -69,11 +69,11 @@ class PensionCalculatorService {
             let retirementAge = employee.hiredAge + yearsToRetire
             let employeeEarliestEligibleRetirementAge = (employee.hiredYear + yearsToRetire) - currentYear + employee.currentAge
             
-            // Calculate disbursements
+            // Calculate disbursements using system-wide wages
             let disbursementResult = PensionCalculatorDisbursements.calculateDisbursements(
                 verbose: false,
-                baseWage: config.baseWage,
-                facWage: config.facWage,
+                baseWage: config.systemWideBaseWage,
+                facWage: config.systemWideFacWage,
                 annualMultiplier: config.multiplier,
                 useFacWage: config.multiplierBasedOnFAC,
                 isColaCompounding: config.isColaCompounding,
@@ -89,8 +89,8 @@ class PensionCalculatorService {
                 pensionOption: config.pensionOption
             )
             
-            // Calculate employee contribution (percentage of base wage over career)
-            let employeeContribution = config.baseWage * (config.employeeContributionPercent / 100.0) * Double(yearsToRetire)
+            // Calculate employee contribution (percentage of system-wide base wage over career)
+            let employeeContribution = config.systemWideBaseWage * (config.employeeContributionPercent / 100.0) * Double(yearsToRetire)
             
             // Calculate amount needed at retirement to fund the annuity
             // ACTUARIAL RULE: We need 100% of expected lifetime benefits at retirement.
@@ -109,7 +109,7 @@ class PensionCalculatorService {
                 sumDesiredAtRetirement: amountNeededAtRetirement,
                 initialBalance: 0,
                 totalEmployeeContribution: employeeContribution,
-                facWage: config.facWage,
+                facWage: config.systemWideFacWage,
                 expectedInterestRate: config.expectedSystemFutureRateReturn,
                 expectedInflationRate: config.expectedFutureInflationRate,
                 yearsInvesting: yearsToRetire,
@@ -148,8 +148,8 @@ class PensionCalculatorService {
                 yearsRetired = 0
             }
             
-            // Calculate future value of employee contributions
-            let annualEmployeeContribution = config.baseWage * (config.employeeContributionPercent / 100.0)
+            // Calculate future value of employee contributions using system-wide base wage
+            let annualEmployeeContribution = config.systemWideBaseWage * (config.employeeContributionPercent / 100.0)
             let employeeContributionsFV = PensionCalculatorPaymentsInto.futureValueOfAnnuity(
                 annualPayment: annualEmployeeContribution,
                 interestRate: config.expectedSystemFutureRateReturn,
@@ -224,7 +224,7 @@ class PensionCalculatorService {
                 yearsRetired = 0
             }
             
-            let annualEmployeeContribution = config.baseWage * (config.employeeContributionPercent / 100.0)
+            let annualEmployeeContribution = config.systemWideBaseWage * (config.employeeContributionPercent / 100.0)
             let employeeContributionsFV = PensionCalculatorPaymentsInto.futureValueOfAnnuity(
                 annualPayment: annualEmployeeContribution,
                 interestRate: config.expectedSystemFutureRateReturn,
@@ -283,12 +283,12 @@ class PensionCalculatorService {
         }
         
         // Calculate percentage of payroll
-        // Payroll is base wages + insurance, not including pension payments
-        // Calculate dynamically based on actual number of employees
+        // Payroll is average wages + insurance, not including pension payments
+        // Use system-wide average wage directly and number of employees in the list
         let numberOfEmployees = employees.count
-        let perEmployeeWage = config.baseWage
+        let averageWage = config.systemWideAverageWage
         let perEmployeeInsurance = config.eachEmployeeInsuranceAnnualCostToCity
-        let totalPayroll = (perEmployeeWage + perEmployeeInsurance) * Double(numberOfEmployees)
+        let totalPayroll = (averageWage + perEmployeeInsurance) * Double(numberOfEmployees)
         let cityAnnualPercentOfPayroll = numberOfEmployees > 0 ? (annualCityPayments / totalPayroll) * 100.0 : 0.0
         
         let verificationResult = ContributionVerificationResult(
@@ -310,17 +310,27 @@ class PensionCalculatorService {
     }
     
     func calculateIndividualPension(config: PensionConfiguration) -> (disbursement: PensionCalculatorDisbursements.DisbursementResult, cityContribution: Double) {
-        // Calculate years needed to retire for fictional new hire
+        // Calculate hire age from blue box inputs (Year Hired - Year Born)
+        let hireAge = config.fictionalHiredYear - config.fictionalBirthYear
+        
+        // Calculate years needed to retire using fictionalYearsOfWork from blue box
+        // If early retirement is authorized, use years of work directly; otherwise respect constraints
         let yearsToRetire: Int
-        if (config.fictionalNewHireAge + config.careerYearsService) < config.minAgeForYearsService {
-            yearsToRetire = config.minAgeForYearsService - config.fictionalNewHireAge
-        } else if config.retirementAge <= (config.careerYearsService + config.fictionalNewHireAge) {
-            yearsToRetire = config.retirementAge - config.fictionalNewHireAge
+        if config.earlyRetirementAuthorized {
+            // If early retirement is authorized, use years of work directly
+            yearsToRetire = config.fictionalYearsOfWork
+        } else if (hireAge + config.fictionalYearsOfWork) < config.minAgeForYearsService {
+            // If years of work wouldn't reach min age, use min age constraint
+            yearsToRetire = config.minAgeForYearsService - hireAge
+        } else if config.retirementAge <= (config.fictionalYearsOfWork + hireAge) {
+            // If retirement age would be reached before completing years of work, use retirement age
+            yearsToRetire = config.retirementAge - hireAge
         } else {
-            yearsToRetire = config.careerYearsService
+            // Use the chosen years of work from blue box
+            yearsToRetire = config.fictionalYearsOfWork
         }
         
-        let retirementAge = config.fictionalNewHireAge + yearsToRetire
+        let retirementAge = hireAge + yearsToRetire
         
         // Calculate disbursements
         let disbursementResult = PensionCalculatorDisbursements.calculateDisbursements(
@@ -338,7 +348,7 @@ class PensionCalculatorService {
             totalYearsService: yearsToRetire,
             lifeExpDiff: config.deltaExtraLife,
             spouseAgeDiff: config.fictionalSpouseAgeDiff,
-            currentAge: config.fictionalNewHireAge,
+            currentAge: hireAge,
             pensionOption: config.pensionOption
         )
         

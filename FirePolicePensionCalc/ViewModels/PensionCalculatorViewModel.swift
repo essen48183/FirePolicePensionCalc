@@ -134,11 +134,23 @@ class PensionCalculatorViewModel: ObservableObject {
                a.retirementAge == b.retirementAge &&
                a.careerYearsService == b.careerYearsService &&
                a.minAgeForYearsService == b.minAgeForYearsService &&
+               a.yearsUntilVestment == b.yearsUntilVestment &&
                a.expectedFutureInflationRate == b.expectedFutureInflationRate &&
                a.expectedSystemFutureRateReturn == b.expectedSystemFutureRateReturn &&
+               a.systemWideBaseWage == b.systemWideBaseWage &&
+               a.systemWideFacWage == b.systemWideFacWage &&
+               a.systemWideAverageWage == b.systemWideAverageWage &&
+               a.lifeExpectancy == b.lifeExpectancy &&
+               a.lifeExpectancySpouse == b.lifeExpectancySpouse &&
+               a.deltaExtraLife == b.deltaExtraLife &&
                a.fictionalNewHireAge == b.fictionalNewHireAge &&
                a.fictionalSpouseAgeDiff == b.fictionalSpouseAgeDiff &&
                a.spouseReductionPercent == b.spouseReductionPercent &&
+               a.fictionalHiredYear == b.fictionalHiredYear &&
+               a.fictionalBirthYear == b.fictionalBirthYear &&
+               a.fictionalSpouseBirthYear == b.fictionalSpouseBirthYear &&
+               a.fictionalYearsOfWork == b.fictionalYearsOfWork &&
+               a.earlyRetirementAuthorized == b.earlyRetirementAuthorized &&
                a.facBaseWageYear1 == b.facBaseWageYear1 &&
                a.facOvertimeYear1 == b.facOvertimeYear1 &&
                a.facRollInsYear1 == b.facRollInsYear1 &&

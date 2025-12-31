@@ -35,20 +35,26 @@ struct ContentView: View {
                 }
                 .tag(2)
             
+            SettingsView(viewModel: viewModel)
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape")
+                }
+                .tag(3)
+            
             SystemInformationView(viewModel: viewModel)
                 .tabItem {
                     Label("Info", systemImage: "info.circle")
                 }
-                .tag(3)
+                .tag(4)
         }
         .onChange(of: selectedTab) { newTab in
             // If switching away from Configuration tab (0) and there are unsaved changes
             if previousTab == 0 && newTab != 0 && viewModel.hasUnsavedChanges {
-                // Prevent the change and show alert
+                // Allow the change but show reminder alert
                 pendingTabChange = newTab
                 showRecalculateAlert = true
-                // Revert the selection
-                selectedTab = 0
+                // Update previous tab to allow navigation
+                previousTab = newTab
             } else {
                 // Update previous tab if change was allowed
                 previousTab = newTab
@@ -67,28 +73,17 @@ struct ContentView: View {
             }
         }
         .alert("Configuration Changed", isPresented: $showRecalculateAlert) {
-            Button("Recalculate All") {
+            Button("Calculate Now") {
                 viewModel.saveConfiguration()
                 viewModel.calculateAll()
-                if let newTab = pendingTabChange {
-                    previousTab = newTab
-                    selectedTab = newTab
-                }
                 pendingTabChange = nil
             }
-            Button("Keep Old Values") {
-                // Just navigate without recalculating
-                if let newTab = pendingTabChange {
-                    previousTab = newTab
-                    selectedTab = newTab
-                }
-                pendingTabChange = nil
-            }
-            Button("Cancel", role: .cancel) {
+            Button("Dismiss", role: .cancel) {
+                // Just acknowledge and continue - don't force calculation
                 pendingTabChange = nil
             }
         } message: {
-            Text("You have unsaved configuration changes. Would you like to recalculate before viewing results?")
+            Text("You have unsaved configuration changes. Remember to press 'Calculate All' to update the results with your new settings.")
         }
     }
 }

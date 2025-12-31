@@ -42,14 +42,16 @@ struct PensionConfiguration: Codable {
     var retirementAge: Int = 55
     var careerYearsService: Int = 20
     var minAgeForYearsService: Int = 50
+    var yearsUntilVestment: Int = 5 // system-wide years until vestment
     
     // Economic assumptions
     var expectedFutureInflationRate: Double = 2.63 // percentage
-    var expectedSystemFutureRateReturn: Double = 7.0 // percentage
+    var expectedSystemFutureRateReturn: Double = 7.25 // percentage
     var employeeContributionPercent: Double = 5.0 // percentage of base wage
     
     // Life expectancy
-    var lifeExpectancy: Int = 73
+    var lifeExpectancy: Int = 73 // system-wide worker life expectancy
+    var lifeExpectancySpouse: Int = 79 // system-wide spouse life expectancy
     var deltaExtraLife: Int = 0 // additional years beyond life expectancy
     
     // Fictional new hire (for individual calculations)
@@ -58,11 +60,23 @@ struct PensionConfiguration: Codable {
     var spouseReductionPercent: Double = 80.0 // percentage (deprecated - calculated based on pension option)
     var pensionOption: PensionOption = .option3 // Default to option 3
     
+    // Real employee data for fictional new hire
+    var fictionalHiredYear: Int = 2025
+    var fictionalBirthYear: Int = 2000
+    var fictionalSpouseBirthYear: Int = 1998
+    var fictionalYearsOfWork: Int = 25 // chosen number of years of work
+    var earlyRetirementAuthorized: Bool = false // if checked, bypasses early retirement validation
+    
     // System-wide settings
     var totalNumberEmployees: Int = 61
     var eachEmployeeInsuranceAnnualCostToCity: Double = 12000
     var cityAnnualWageAndBonusPayments: Double = 4949000
     var cityAnnualInsurancePayments: Double = 1033000
+    
+    // System-wide wage assumptions
+    var systemWideBaseWage: Double = 85000 // system-wide base wage for calculations
+    var systemWideFacWage: Double = 98000 // system-wide FAC wage for calculations
+    var systemWideAverageWage: Double = 60000 // system-wide average wage for average payroll calculations
     
     // FAC Calculator defaults (persisted)
     var facBaseWageYear1: Double = 0

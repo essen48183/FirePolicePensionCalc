@@ -26,16 +26,16 @@ struct IndividualResultsView: View {
                         // Header Section
                         Section {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Individual Pension Calculation")
-                                    .font(.largeTitle)
+                                Text("Individual Fictional Calc.")
+                                    .font(.title2)
                                     .bold()
                                 
                                 Text("*All costs projected and adjusted to today's buying power using your specified economic assumptions of expected fund performance and inflation rate")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                 
-                                Text("Individual Calc or Fictional New Hire")
-                                    .font(.title2)
+                                Text("(not part of the system-wide results)")
+                                    .font(.subheadline)
                                     .foregroundColor(.secondary)
                                     .padding(.top, 4)
                             }
@@ -72,7 +72,7 @@ struct IndividualResultsView: View {
                                 ResultCard(title: "Survivor's Initial Annual Pension", value: survivorPercentOfInitial, format: .percent)
                                 
                                 if viewModel.config.pensionOption == .option3 {
-                                    Text("This survivor receives \(String(format: "%.1f", survivorPercentOfInitial))% of the initial annual pension (dollar amount of \(formatCurrency(result.disbursement.spouseInitialAnnualPension)), which includes any COLA increases from the \(result.disbursement.yearsReceivingPension) years the retiree received the pension) for \(result.disbursement.yearsReceivingSpousePension) years. The dollar amount stays at this level (or increases with additional COLA adjustments during survivor years), but the buying power decreases with inflation each year. On the day it starts (after \(result.disbursement.yearsReceivingPension) years of the retiree receiving the pension), the dollar amount paid is \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) which has today's value buying power of \(formatCurrency(result.disbursement.spouseInitialBuyingPower)), and by the final life expectancy year, the final buying power will be \(formatCurrency(result.disbursement.spouseFinalAnnualPension)).")
+                                    Text("This survivor receives \(String(format: "%.1f", survivorPercentOfInitial))% for \(result.disbursement.yearsReceivingSpousePension) years of the initial annual pension (estimated dollar amount of \(formatCurrency(result.disbursement.spouseInitialAnnualPension)), which includes any COLA increases from the \(result.disbursement.yearsReceivingPension) years the retiree and survivor received the pension). The dollar amount decreases to the option level and the buying power decreases with inflation each year even though the dollar amount doesn't. On the day survivorship starts (after \(result.disbursement.yearsReceivingPension) years of the retiree receiving the pension), the dollar amount paid is \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) which will have an approximate today's-dollar-value buying power of \(formatCurrency(result.disbursement.spouseInitialBuyingPower)), and by the final life expectancy year, the final buying power in today's dollars will be closer to \(formatCurrency(result.disbursement.spouseFinalAnnualPension)).")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
@@ -104,11 +104,20 @@ struct IndividualResultsView: View {
                         
                         // Configuration Section
                         Section(header: Text("Configuration Used").font(.title2).bold()) {
-                            Text("Hire Age: \(viewModel.config.fictionalNewHireAge)")
-                            Text("Base Wage: \(formatCurrency(viewModel.config.baseWage))")
-                            Text("FAC Wage: \(formatCurrency(viewModel.config.facWage))")
-                            Text("Multiplier: \(viewModel.config.multiplier)%")
-                            Text("COLA: \(viewModel.config.colaNumber) adjustments of \(viewModel.config.colaPercent)% every \(viewModel.config.colaSpacing) years")
+                            Text("Hire Age: \(calculateHireAge()) (Year Hired: \(formatYear(viewModel.config.fictionalHiredYear)) - Year Born: \(formatYear(viewModel.config.fictionalBirthYear)))")
+                            if viewModel.config.earlyRetirementAuthorized {
+                                Text("Retire Age: \(calculateRetireAge()) (Note: Pension payments may start at minimum service years age (\(viewModel.config.minAgeForYearsService)) depending on system)")
+                            } else {
+                                Text("Retire Age: \(calculateRetireAge())")
+                            }
+                            Text("Years of Work: \(viewModel.config.fictionalYearsOfWork)")
+                            if viewModel.config.multiplierBasedOnFAC {
+                                Text("FAC Wage: \(formatCurrency(viewModel.config.facWage))")
+                            } else {
+                                Text("Fixed/Base Wage: \(formatCurrency(viewModel.config.baseWage))")
+                            }
+                            Text("Multiplier: \(formatPercent(viewModel.config.multiplier))%")
+                            Text("COLA: \(viewModel.config.colaNumber) adjustments of \(formatPercent(viewModel.config.colaPercent))% every \(viewModel.config.colaSpacing) years")
                         }
                     }
                 } else {
@@ -137,15 +146,30 @@ struct IndividualResultsView: View {
         return formatter.string(from: NSNumber(value: value)) ?? "$\(Int(value))"
     }
     
+    private func formatYear(_ value: Int) -> String {
+        // Format year without commas
+        return String(value)
+    }
+    
+    private func formatPercent(_ value: Double) -> String {
+        // Format percent with 2 decimal places
+        return String(format: "%.2f", value)
+    }
+    
     private func calculateEmployeeContribution() -> Double {
-        // Calculate years needed to retire for fictional new hire (same logic as service)
+        // Calculate years needed to retire using fictionalYearsOfWork from blue box (same logic as service)
+        let hireAge = calculateHireAge()
         let yearsToRetire: Int
-        if (viewModel.config.fictionalNewHireAge + viewModel.config.careerYearsService) < viewModel.config.minAgeForYearsService {
-            yearsToRetire = viewModel.config.minAgeForYearsService - viewModel.config.fictionalNewHireAge
-        } else if viewModel.config.retirementAge <= (viewModel.config.careerYearsService + viewModel.config.fictionalNewHireAge) {
-            yearsToRetire = viewModel.config.retirementAge - viewModel.config.fictionalNewHireAge
+        
+        // If early retirement is authorized, use years of work directly
+        if viewModel.config.earlyRetirementAuthorized {
+            yearsToRetire = viewModel.config.fictionalYearsOfWork
+        } else if (hireAge + viewModel.config.fictionalYearsOfWork) < viewModel.config.minAgeForYearsService {
+            yearsToRetire = viewModel.config.minAgeForYearsService - hireAge
+        } else if viewModel.config.retirementAge <= (viewModel.config.fictionalYearsOfWork + hireAge) {
+            yearsToRetire = viewModel.config.retirementAge - hireAge
         } else {
-            yearsToRetire = viewModel.config.careerYearsService
+            yearsToRetire = viewModel.config.fictionalYearsOfWork
         }
         
         // Employee contribution is percentage of base wage over career
@@ -153,14 +177,19 @@ struct IndividualResultsView: View {
     }
     
     private func calculateOption1Pension() -> Double {
-        // Calculate years needed to retire for fictional new hire (same logic as service)
+        // Calculate years needed to retire using fictionalYearsOfWork from blue box (same logic as service)
+        let hireAge = calculateHireAge()
         let yearsToRetire: Int
-        if (viewModel.config.fictionalNewHireAge + viewModel.config.careerYearsService) < viewModel.config.minAgeForYearsService {
-            yearsToRetire = viewModel.config.minAgeForYearsService - viewModel.config.fictionalNewHireAge
-        } else if viewModel.config.retirementAge <= (viewModel.config.careerYearsService + viewModel.config.fictionalNewHireAge) {
-            yearsToRetire = viewModel.config.retirementAge - viewModel.config.fictionalNewHireAge
+        
+        // If early retirement is authorized, use years of work directly
+        if viewModel.config.earlyRetirementAuthorized {
+            yearsToRetire = viewModel.config.fictionalYearsOfWork
+        } else if (hireAge + viewModel.config.fictionalYearsOfWork) < viewModel.config.minAgeForYearsService {
+            yearsToRetire = viewModel.config.minAgeForYearsService - hireAge
+        } else if viewModel.config.retirementAge <= (viewModel.config.fictionalYearsOfWork + hireAge) {
+            yearsToRetire = viewModel.config.retirementAge - hireAge
         } else {
-            yearsToRetire = viewModel.config.careerYearsService
+            yearsToRetire = viewModel.config.fictionalYearsOfWork
         }
         
         // Calculate Option 1 (maximum) pension amount
@@ -177,6 +206,32 @@ struct IndividualResultsView: View {
     private func calculateSurvivorPercentOfOption1(result: (disbursement: PensionCalculatorDisbursements.DisbursementResult, cityContribution: Double)) -> Double {
         let option1Pension = calculateOption1Pension()
         return (result.disbursement.spouseInitialAnnualPension / option1Pension) * 100.0
+    }
+    
+    private func calculateHireAge() -> Int {
+        // Calculate hire age from blue box inputs (Year Hired - Year Born)
+        return viewModel.config.fictionalHiredYear - viewModel.config.fictionalBirthYear
+    }
+    
+    private func calculateRetireAge() -> Int {
+        // Calculate years needed to retire using fictionalYearsOfWork from blue box (same logic as service)
+        let hireAge = calculateHireAge()
+        let yearsToRetire: Int
+        
+        // If early retirement is authorized, use years of work directly
+        if viewModel.config.earlyRetirementAuthorized {
+            yearsToRetire = viewModel.config.fictionalYearsOfWork
+        } else if (hireAge + viewModel.config.fictionalYearsOfWork) < viewModel.config.minAgeForYearsService {
+            // If years of work wouldn't reach min age, use min age constraint
+            yearsToRetire = viewModel.config.minAgeForYearsService - hireAge
+        } else if viewModel.config.retirementAge <= (viewModel.config.fictionalYearsOfWork + hireAge) {
+            // If retirement age would be reached before completing years of work, use retirement age
+            yearsToRetire = viewModel.config.retirementAge - hireAge
+        } else {
+            // Use the chosen years of work from blue box
+            yearsToRetire = viewModel.config.fictionalYearsOfWork
+        }
+        return hireAge + yearsToRetire
     }
     
     private func calculateCOLAInfo(result: (disbursement: PensionCalculatorDisbursements.DisbursementResult, cityContribution: Double)) -> String? {

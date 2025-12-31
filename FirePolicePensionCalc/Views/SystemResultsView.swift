@@ -36,7 +36,7 @@ struct SystemResultsView: View {
                         Section {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("System-Wide Results for All Active Employees")
-                                    .font(.largeTitle)
+                                    .font(.title2)
                                     .bold()
                                 
                                 Text("*All costs projected and adjusted to today's buying power using your specified economic assumptions of expected fund performance and inflation rate")
@@ -75,8 +75,15 @@ struct SystemResultsView: View {
                         // Configuration Section
                         Section(header: Text("Configuration").font(.title2).bold()) {
                             Text("Employees: \(viewModel.employees.count)")
-                            Text("Multiplier: \(viewModel.config.multiplier)%")
-                            Text("COLA: \(viewModel.config.colaNumber) adjustments, \(viewModel.config.colaPercent)% every \(viewModel.config.colaSpacing) years")
+                            if viewModel.config.multiplierBasedOnFAC {
+                                Text("Pension Based On: FAC Wage")
+                                Text("Average FAC Wage Used: \(formatCurrency(viewModel.config.systemWideFacWage))")
+                            } else {
+                                Text("Pension Based On: Fixed/Base Wage")
+                                Text("Average Fixed/Base Wage Used: \(formatCurrency(viewModel.config.systemWideBaseWage))")
+                            }
+                            Text("Multiplier: \(formatPercent(viewModel.config.multiplier))%")
+                            Text("COLA: \(viewModel.config.colaNumber) adjustments, \(formatPercent(viewModel.config.colaPercent))% every \(viewModel.config.colaSpacing) years")
                             Text("Retirement Age: \(viewModel.config.retirementAge) or \(viewModel.config.careerYearsService) years service")
                         }
                         
@@ -138,6 +145,20 @@ struct SystemResultsView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .navigationViewStyle(StackNavigationViewStyle())
+    }
+    
+    private func formatPercent(_ value: Double) -> String {
+        // Format percent with 2 decimal places
+        return String(format: "%.2f", value)
+    }
+    
+    private func formatCurrency(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencySymbol = "$"
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 0
+        return formatter.string(from: NSNumber(value: value)) ?? "$\(Int(value))"
     }
 }
 
