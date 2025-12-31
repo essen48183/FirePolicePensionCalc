@@ -67,49 +67,52 @@ struct EmployeeEditView: View {
     }
     
     var body: some View {
+        employeeList
+            .navigationTitle("Edit Employees")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    leadingToolbarButtons
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    trailingToolbarButton
+                }
+            }
+            .alert("Validation Error", isPresented: $showValidationError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(validationErrorMessage)
+            }
+            .alert("Save Changes?", isPresented: $showSaveChangesAlert) {
+                Button("Save") {
+                    if validateEmployees() {
+                        saveChanges()
+                    } else {
+                        // If validation fails, show validation error instead
+                        showSaveChangesAlert = false
+                    }
+                }
+                Button("Discard Changes", role: .destructive) {
+                    dismiss()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("You have unsaved changes. Would you like to save them before leaving?")
+            }
+    }
+    
+    private var employeeList: some View {
         List {
             ForEach($editedEmployees) { $employee in
-                Section(header: Text(employee.name.isEmpty ? "New Employee" : employee.name)) {
-                    HStack {
-                        Text("Name")
-                        Spacer()
-                        TextField("Name", text: $employee.name)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 200)
-                    }
-                    
-                    HStack {
-                        Text("Hired Year")
-                        Spacer()
-                        TextField("Hired Year", value: $employee.hiredYear, format: .number)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                    }
-                    
-                    HStack {
-                        Text("Date of Birth")
-                        Spacer()
-                        TextField("Date of Birth", value: $employee.dateOfBirth, format: .number)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                    }
-                    
-                    HStack {
-                        HStack(spacing: 4) {
-                            Text("Spouse DOB")
-                            Image(systemName: "info.circle")
-                                .font(.caption)
-                                .foregroundColor(.blue)
-                                .help("Enter zero for no spouse")
+                Section {
+                    EmployeeEntryCard(employee: $employee, onDelete: {
+                        if let index = editedEmployees.firstIndex(where: { $0.id == employee.id }) {
+                            editedEmployees.remove(at: index)
                         }
-                        Spacer()
-                        TextField("0 for no spouse", value: $employee.spouseDateOfBirth, format: .number)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                    }
+                    })
+                } header: {
+                    Text(employee.name.isEmpty ? "New Employee" : employee.name)
                 }
             }
             .onDelete { indexSet in
@@ -119,60 +122,36 @@ struct EmployeeEditView: View {
                 // Track changes when employees are modified
             }
         }
-        .navigationTitle("Edit Employees")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                HStack(spacing: 16) {
-                    Button(action: {
-                        if hasUnsavedChanges() {
-                            showSaveChangesAlert = true
-                        } else {
-                            dismiss()
-                        }
-                    }) {
-                        HStack {
-                            Image(systemName: "chevron.left")
-                            Text("Back")
-                        }
-                    }
-                    Button(action: addNewEmployee) {
-                        HStack {
-                            Image(systemName: "plus")
-                            Text("Add")
-                        }
-                    }
-                }
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Save") {
-                    if validateEmployees() {
-                        saveChanges()
-                    }
-                }
-            }
-        }
-        .alert("Validation Error", isPresented: $showValidationError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(validationErrorMessage)
-        }
-        .alert("Save Changes?", isPresented: $showSaveChangesAlert) {
-            Button("Save") {
-                if validateEmployees() {
-                    saveChanges()
+    }
+    
+    private var leadingToolbarButtons: some View {
+        HStack(spacing: 16) {
+            Button(action: {
+                if hasUnsavedChanges() {
+                    showSaveChangesAlert = true
                 } else {
-                    // If validation fails, show validation error instead
-                    showSaveChangesAlert = false
+                    dismiss()
+                }
+            }) {
+                HStack {
+                    Image(systemName: "chevron.left")
+                    Text("Back")
                 }
             }
-            Button("Discard Changes", role: .destructive) {
-                dismiss()
+            Button(action: addNewEmployee) {
+                HStack {
+                    Image(systemName: "plus")
+                    Text("Add")
+                }
             }
-            Button("Cancel", role: .cancel) { }
-        } message: {
-            Text("You have unsaved changes. Would you like to save them before leaving?")
+        }
+    }
+    
+    private var trailingToolbarButton: some View {
+        Button("Save") {
+            if validateEmployees() {
+                saveChanges()
+            }
         }
     }
     

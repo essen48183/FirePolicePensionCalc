@@ -284,8 +284,12 @@ class PensionCalculatorService {
         
         // Calculate percentage of payroll
         // Payroll is base wages + insurance, not including pension payments
-        let totalPayroll = config.cityAnnualWageAndBonusPayments + config.cityAnnualInsurancePayments
-        let cityAnnualPercentOfPayroll = (annualCityPayments / totalPayroll) * 100.0
+        // Calculate dynamically based on actual number of employees
+        let numberOfEmployees = employees.count
+        let perEmployeeWage = config.baseWage
+        let perEmployeeInsurance = config.eachEmployeeInsuranceAnnualCostToCity
+        let totalPayroll = (perEmployeeWage + perEmployeeInsurance) * Double(numberOfEmployees)
+        let cityAnnualPercentOfPayroll = numberOfEmployees > 0 ? (annualCityPayments / totalPayroll) * 100.0 : 0.0
         
         let verificationResult = ContributionVerificationResult(
             totalAvailableAtRetirement: totalAvailableAtRetirement,

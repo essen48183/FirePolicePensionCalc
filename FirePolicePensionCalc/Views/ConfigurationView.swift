@@ -149,40 +149,54 @@ struct ConfigurationView: View {
                 }
                 
                 Section(header: Text("Individual Calc (or Fictional New Hire")) {
-                    HStack {
-                        Text("Hire Age")
-                        Spacer()
-                        TextField("30", value: $viewModel.config.fictionalNewHireAge, format: .number)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 120)
-                    }
-                    HStack {
-                        Text("Spouse Age Diff")
-                        Spacer()
-                        TextField("-2", value: $viewModel.config.fictionalSpouseAgeDiff, format: .number)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 120)
-                    }
-                    HStack {
-                        Text("Pension Option")
-                        Button(action: {
-                            showPensionOptionDescription = true
-                        }) {
-                            Image(systemName: "questionmark.circle")
-                                .foregroundColor(.blue)
-                                .font(.caption)
+                    VStack(spacing: 0) {
+                        HStack {
+                            Text("Hire Age")
+                            Spacer()
+                            TextField("30", value: $viewModel.config.fictionalNewHireAge, format: .number)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 120)
                         }
-                        .buttonStyle(.plain)
-                        Spacer()
-                        Picker( "",selection: $viewModel.config.pensionOption) {
-                            ForEach(PensionOption.allCases, id: \.self) { option in
-                                Text(option.displayName).tag(option)
+                        .padding(.vertical, 4)
+                        
+                        HStack {
+                            Text("Spouse Age Diff")
+                            Spacer()
+                            TextField("-2", value: $viewModel.config.fictionalSpouseAgeDiff, format: .number)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 120)
+                        }
+                        .padding(.vertical, 4)
+                        
+                        HStack {
+                            Text("Pension Option")
+                            Button(action: {
+                                showPensionOptionDescription = true
+                            }) {
+                                Image(systemName: "questionmark.circle")
+                                    .foregroundColor(.blue)
+                                    .font(.caption)
                             }
+                            .buttonStyle(.plain)
+                            Spacer()
+                            Picker( "",selection: $viewModel.config.pensionOption) {
+                                ForEach(PensionOption.allCases, id: \.self) { option in
+                                    Text(option.displayName).tag(option)
+                                }
+                            }
+                            .pickerStyle(.menu)
                         }
-                        .pickerStyle(.menu)
+                        .padding(.vertical, 4)
                     }
+                    .padding(8)
+                    .background(Color.blue.opacity(0.1))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.blue, lineWidth: 2)
+                    )
+                    .cornerRadius(8)
                 }
                 
                 Section(header: Text("Calculations")) {
@@ -198,30 +212,6 @@ struct ConfigurationView: View {
                         }
                     }
                     .buttonStyle(.borderedProminent)
-                }
-                
-                Section(header: Text("Data Management")) {
-                    Button(action: {
-                        viewModel.saveConfiguration()
-                    }) {
-                        HStack {
-                            Spacer()
-                            Text("Save Configuration")
-                            Spacer()
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                    
-                    Button(action: {
-                        viewModel.loadDefaultConfiguration()
-                    }) {
-                        HStack {
-                            Spacer()
-                            Text("Load Default Configuration")
-                            Spacer()
-                        }
-                    }
-                    .buttonStyle(.bordered)
                 }
             }
         .navigationTitle("Pension Calculator")

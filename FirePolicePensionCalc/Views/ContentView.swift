@@ -35,7 +35,7 @@ struct ContentView: View {
                 }
                 .tag(2)
             
-            SystemInformationView()
+            SystemInformationView(viewModel: viewModel)
                 .tabItem {
                     Label("Info", systemImage: "info.circle")
                 }

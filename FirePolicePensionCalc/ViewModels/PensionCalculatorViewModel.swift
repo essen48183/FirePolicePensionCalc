@@ -47,9 +47,18 @@ class PensionCalculatorViewModel: ObservableObject {
     
     func loadDefaultConfiguration() {
         config = PensionConfiguration()
-        // Ensure employee count matches loaded employees
-        config.totalNumberEmployees = employees.count
+        // Don't update employee count here - it will be updated when employees are loaded/cleared
         saveConfiguration()
+    }
+    
+    func clearAllEmployees() {
+        employees.removeAll()
+        do {
+            try EmployeeDataLoader.saveEmployees([])
+            config.totalNumberEmployees = 0
+        } catch {
+            print("Error clearing employees: \(error)")
+        }
     }
     
     func calculateSystemCosts() {

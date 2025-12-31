@@ -11,6 +11,8 @@
 		3887E1942F04A10600680114 /* FACCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E1932F04A10600680114 /* FACCalculatorView.swift */; };
 		3887E1962F04B25500680114 /* PensionOptionDescriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E1952F04B25500680114 /* PensionOptionDescriptionView.swift */; };
 		3887E1982F04E20400680114 /* SystemInformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E1972F04E20400680114 /* SystemInformationView.swift */; };
+		3887E19A2F04E82800680114 /* EmployeeEntryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E1992F04E82800680114 /* EmployeeEntryCard.swift */; };
+		3887E19C2F04E83100680114 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E19B2F04E83100680114 /* ShareSheet.swift */; };
 		38A34C8D2F047EB800B97263 /* EmployeeEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A34C8C2F047EB800B97263 /* EmployeeEditView.swift */; };
 		A1000001 /* FirePolicePensionCalcApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002 /* FirePolicePensionCalcApp.swift */; };
 		A1000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004 /* ContentView.swift */; };
@@ -35,6 +37,8 @@
 		3887E1932F04A10600680114 /* FACCalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FACCalculatorView.swift; sourceTree = "<group>"; };
 		3887E1952F04B25500680114 /* PensionOptionDescriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PensionOptionDescriptionView.swift; sourceTree = "<group>"; };
 		3887E1972F04E20400680114 /* SystemInformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemInformationView.swift; sourceTree = "<group>"; };
+		3887E1992F04E82800680114 /* EmployeeEntryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmployeeEntryCard.swift; sourceTree = "<group>"; };
+		3887E19B2F04E83100680114 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		38A34C8C2F047EB800B97263 /* EmployeeEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmployeeEditView.swift; sourceTree = "<group>"; };
 		A1000000 /* FirePolicePensionCalc.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FirePolicePensionCalc.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1000002 /* FirePolicePensionCalcApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirePolicePensionCalcApp.swift; sourceTree = "<group>"; };
@@ -147,6 +151,8 @@
 		A1000043 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				3887E19B2F04E83100680114 /* ShareSheet.swift */,
+				3887E1992F04E82800680114 /* EmployeeEntryCard.swift */,
 				3887E1972F04E20400680114 /* SystemInformationView.swift */,
 				3887E1952F04B25500680114 /* PensionOptionDescriptionView.swift */,
 				3887E1932F04A10600680114 /* FACCalculatorView.swift */,
@@ -242,8 +248,10 @@
 				A1000005 /* Employee.swift in Sources */,
 				A1000007 /* PensionConfiguration.swift in Sources */,
 				38A34C8D2F047EB800B97263 /* EmployeeEditView.swift in Sources */,
+				3887E19A2F04E82800680114 /* EmployeeEntryCard.swift in Sources */,
 				A1000009 /* PensionCalculatorDisbursements.swift in Sources */,
 				A1000011 /* PensionCalculatorPaymentsInto.swift in Sources */,
+				3887E19C2F04E83100680114 /* ShareSheet.swift in Sources */,
 				A1000013 /* PensionCalculatorService.swift in Sources */,
 				A1000015 /* EmployeeDataLoader.swift in Sources */,
 				3845B1BB2F04790500EA1FF1 /* EmployeeListView.swift in Sources */,
