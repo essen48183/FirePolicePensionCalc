@@ -34,6 +34,12 @@ struct ContentView: View {
                     Label("System Results", systemImage: "chart.bar")
                 }
                 .tag(2)
+            
+            SystemInformationView()
+                .tabItem {
+                    Label("Info", systemImage: "info.circle")
+                }
+                .tag(3)
         }
         .onChange(of: selectedTab) { newTab in
             // If switching away from Configuration tab (0) and there are unsaved changes
