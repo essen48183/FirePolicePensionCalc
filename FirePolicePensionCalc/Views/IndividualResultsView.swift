@@ -66,18 +66,25 @@ struct IndividualResultsView: View {
                         
                         // Survivor Benefits Section
                         if result.disbursement.yearsReceivingSpousePension > 0 {
-                            let survivorPercentOfInitial = (result.disbursement.spouseInitialAnnualPension / result.disbursement.initialAnnualPension) * 100.0
-                            
                             Section {
-                                ResultCard(title: "Survivor's Initial Annual Pension", value: survivorPercentOfInitial, format: .percent)
+                                ResultCard(
+                                    title: "Survivor's Initial Annual Pension",
+                                    value: calculateSurvivorPercentOfInitial(result: result),
+                                    format: .percent
+                                )
                                 
                                 if viewModel.config.pensionOption == .option3 {
-                                    Text("This survivor receives \(String(format: "%.1f", survivorPercentOfInitial))% for \(result.disbursement.yearsReceivingSpousePension) years of the initial annual pension (estimated dollar amount of \(formatCurrency(result.disbursement.spouseInitialAnnualPension)), which includes any COLA increases from the \(result.disbursement.yearsReceivingPension) years the retiree and survivor received the pension). The dollar amount decreases to the option level and the buying power decreases with inflation each year even though the dollar amount doesn't. On the day survivorship starts (after \(result.disbursement.yearsReceivingPension) years of the retiree receiving the pension), the dollar amount paid is \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) which will have an approximate today's-dollar-value buying power of \(formatCurrency(result.disbursement.spouseInitialBuyingPower)), and by the final life expectancy year, the final buying power in today's dollars will be closer to \(formatCurrency(result.disbursement.spouseFinalAnnualPension)).")
+                                    Text("This survivor receives \(String(format: "%.1f", calculateSurvivorPercentOfInitial(result: result)))% for \(result.disbursement.yearsReceivingSpousePension) years of the initial annual pension (estimated dollar amount of \(formatCurrency(result.disbursement.spouseInitialAnnualPension)), which includes any COLA increases from the \(result.disbursement.yearsReceivingPension) years the retiree and survivor received the pension). The dollar amount decreases to the option level and the buying power decreases with inflation each year even though the dollar amount doesn't. On the day survivorship starts (after \(result.disbursement.yearsReceivingPension) years of the retiree receiving the pension), the dollar amount paid is \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) which will have an approximate today's-dollar-value buying power of \(formatCurrency(result.disbursement.spouseInitialBuyingPower)), and by the final life expectancy year, the final buying power in today's dollars will be closer to \(formatCurrency(result.disbursement.spouseFinalAnnualPension)).")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                } else if viewModel.config.pensionOption == .option4 {
+                                    Text("This survivor receives \(String(format: "%.1f", calculateSurvivorPercentOfInitial(result: result)))% of the initial annual pension at retirement for \(result.disbursement.yearsReceivingSpousePension) years. The dollar amount is \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) (66.67% of the initial annual pension), which will have today's value buying power on the day survivorship starts (after \(result.disbursement.yearsReceivingPension) years of the retiree receiving the pension) of \(formatCurrency(result.disbursement.spouseInitialBuyingPower)), and final life expectancy year buying power of \(formatCurrency(result.disbursement.spouseFinalAnnualPension))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 } else {
-                                    Text("This survivor receives \(String(format: "%.1f", survivorPercentOfInitial))% of the initial annual pension for \(result.disbursement.yearsReceivingSpousePension) years, which will have today's value buying power on the day it starts of \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) and final life expectancy year buying power of \(formatCurrency(result.disbursement.spouseFinalAnnualPension))")
+                                    Text("This survivor receives \(String(format: "%.1f", calculateSurvivorPercentOfInitial(result: result)))% of the initial annual pension for \(result.disbursement.yearsReceivingSpousePension) years, which will have today's value buying power on the day it starts of \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) and final life expectancy year buying power of \(formatCurrency(result.disbursement.spouseFinalAnnualPension))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
@@ -206,6 +213,17 @@ struct IndividualResultsView: View {
     private func calculateSurvivorPercentOfOption1(result: (disbursement: PensionCalculatorDisbursements.DisbursementResult, cityContribution: Double)) -> Double {
         let option1Pension = calculateOption1Pension()
         return (result.disbursement.spouseInitialAnnualPension / option1Pension) * 100.0
+    }
+    
+    private func calculateSurvivorPercentOfInitial(result: (disbursement: PensionCalculatorDisbursements.DisbursementResult, cityContribution: Double)) -> Double {
+        // Use the stored spouseReductionPercent for Options 2 and 4, calculate for Option 3
+        if viewModel.config.pensionOption == .option3 {
+            // For Option 3, calculate as percentage of initial pension (includes COLAs)
+            return (result.disbursement.spouseInitialAnnualPension / result.disbursement.initialAnnualPension) * 100.0
+        } else {
+            // For Options 2 and 4, use the stored percentage (100% for Option 2, 66.67% for Option 4)
+            return result.disbursement.spouseReductionPercent
+        }
     }
     
     private func calculateHireAge() -> Int {

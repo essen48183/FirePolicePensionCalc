@@ -216,10 +216,10 @@ class PensionCalculatorDisbursements {
             spousePension = annualSpousePension
             calculatedSpouseReductionPercent = 100.0 // 100% of initial annual pension
         case .option4:
-            // Joint and Survivor (66.67%) - survivor receives 66.67% of what retiree was receiving
-            annualSpousePension = currentPension * (2.0 / 3.0) // 66.67%
+            // Joint and Survivor (66.67%) - survivor receives 66.67% of initial annual pension at retirement
+            annualSpousePension = initialAnnualPension * (2.0 / 3.0) // 66.67% of initial pension
             spousePension = annualSpousePension
-            calculatedSpouseReductionPercent = 66.67 // 66.67% of reduced pension
+            calculatedSpouseReductionPercent = 66.67 // 66.67% of initial pension
         }
         
         // Store initial spouse pension (at retiree's death)
@@ -227,6 +227,7 @@ class PensionCalculatorDisbursements {
         
         // Calculate buying power of spouse pension on day 1 (after retiree has received pension for yearsReceivingPension years)
         // For Option 3, the dollar amount includes COLAs from retiree's years, but buying power is reduced by inflation over retiree's years
+        // For Option 4, the dollar amount is 66.67% of initial pension, but buying power is reduced by inflation over retiree's years
         var spouseInitialBuyingPower: Double
         if pensionOption == .option3 {
             // Dollar amount after COLAs (already calculated above as spouseInitialPension)
@@ -236,8 +237,16 @@ class PensionCalculatorDisbursements {
                 buyingPower -= buyingPower * inflate
             }
             spouseInitialBuyingPower = buyingPower
+        } else if pensionOption == .option4 {
+            // Dollar amount is 66.67% of initial pension (fixed)
+            // Calculate buying power by applying inflation over retiree's years
+            var buyingPower = spouseInitialPension // Start with dollar amount (66.67% of initial)
+            for _ in 1...yearsReceivingPension {
+                buyingPower -= buyingPower * inflate
+            }
+            spouseInitialBuyingPower = buyingPower
         } else {
-            // For other options, buying power equals dollar amount on day 1
+            // For Option 2, buying power equals dollar amount on day 1
             spouseInitialBuyingPower = spouseInitialPension
         }
         
@@ -378,9 +387,10 @@ class PensionCalculatorDisbursements {
         isFixedYears: Bool
     ) -> Double {
         // Use binary search to find the reduced pension that makes total benefit equal to target
-        var low: Double = option1Pension * 0.70
-        var high: Double = option1Pension * 0.98
-        var bestPension: Double = option1Pension * 0.90
+        // Wider bounds to handle all scenarios: Option 4 should be higher than Option 3
+        var low: Double = option1Pension * 0.50
+        var high: Double = option1Pension * 0.99
+        var bestPension: Double = option1Pension * 0.85
         
         for _ in 0..<50 { // 50 iterations for better precision
             let mid = (low + high) / 2.0
@@ -503,8 +513,16 @@ class PensionCalculatorDisbursements {
                     totalBenefit += survivorBuyingPower
                 }
             } else {
-                // Option 2 and 4: percentage of current pension at death
-                var survivorPension = currentPension * survivorPercent
+                // Option 2: percentage of current pension at death
+                // Option 4: percentage of initial pension at retirement
+                var survivorPension: Double
+                if survivorPercent < 1.0 && !isFixedYears {
+                    // Option 4: 66.67% of initial pension at retirement
+                    survivorPension = initialPension * survivorPercent
+                } else {
+                    // Option 2: 100% of current pension at death
+                    survivorPension = currentPension * survivorPercent
+                }
                 
                 for year in 1...actualSurvivorYears {
                     // Apply inflation

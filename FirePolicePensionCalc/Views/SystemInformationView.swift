@@ -192,6 +192,86 @@ struct SystemInformationView: View {
                             .foregroundColor(.secondary)
                     }
                     
+                    Divider()
+                    
+                    // Additional Resources
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Additional Resources")
+                            .font(.title3)
+                            .bold()
+                        
+                        VStack(spacing: 12) {
+                            NavigationLink(destination: PensionOptionDescriptionView()) {
+                                HStack {
+                                    Image(systemName: "list.bullet.rectangle")
+                                        .foregroundColor(.blue)
+                                        .font(.title3)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Pension Option Descriptions")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("Detailed descriptions of Options 1-4")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                        .font(.caption)
+                                }
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(12)
+                            }
+                            
+                            NavigationLink(destination: FACExplanationView()) {
+                                HStack {
+                                    Image(systemName: "calculator")
+                                        .foregroundColor(.blue)
+                                        .font(.title3)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("FAC Calculation Explanation")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("How Final Average Compensation is calculated")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                        .font(.caption)
+                                }
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(12)
+                            }
+                            
+                            NavigationLink(destination: ActuarialFormulasView()) {
+                                HStack {
+                                    Image(systemName: "function")
+                                        .foregroundColor(.blue)
+                                        .font(.title3)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Actuarial Formulas & Best Practices")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("All math formulas and actuarial standards used")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                        .font(.caption)
+                                }
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(12)
+                            }
+                        }
+                    }
+                    
                     Spacer(minLength: 20)
                 }
                 .padding()

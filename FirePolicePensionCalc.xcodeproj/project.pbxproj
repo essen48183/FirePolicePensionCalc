@@ -7,7 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3831154A2F05A1B200FFF0AD /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 383115492F05A1B200FFF0AD /* SettingsView.swift */; };
 		3845B1BB2F04790500EA1FF1 /* EmployeeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3845B1BA2F04790500EA1FF1 /* EmployeeListView.swift */; };
+		387AAF192F09B1870079872F /* ActuarialFormulasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387AAF182F09B1870079872F /* ActuarialFormulasView.swift */; };
+		387AAF1B2F09B1920079872F /* FACExplanationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387AAF1A2F09B1920079872F /* FACExplanationView.swift */; };
+		387AAF1D2F09B45B0079872F /* IntegerInputField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387AAF1C2F09B45B0079872F /* IntegerInputField.swift */; };
+		387AAF1F2F09B4640079872F /* NumberInputField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387AAF1E2F09B4640079872F /* NumberInputField.swift */; };
 		3887E1942F04A10600680114 /* FACCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E1932F04A10600680114 /* FACCalculatorView.swift */; };
 		3887E1962F04B25500680114 /* PensionOptionDescriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E1952F04B25500680114 /* PensionOptionDescriptionView.swift */; };
 		3887E1982F04E20400680114 /* SystemInformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E1972F04E20400680114 /* SystemInformationView.swift */; };
@@ -33,7 +38,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		383115492F05A1B200FFF0AD /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		3845B1BA2F04790500EA1FF1 /* EmployeeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmployeeListView.swift; sourceTree = "<group>"; };
+		387AAF182F09B1870079872F /* ActuarialFormulasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActuarialFormulasView.swift; sourceTree = "<group>"; };
+		387AAF1A2F09B1920079872F /* FACExplanationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FACExplanationView.swift; sourceTree = "<group>"; };
+		387AAF1C2F09B45B0079872F /* IntegerInputField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegerInputField.swift; sourceTree = "<group>"; };
+		387AAF1E2F09B4640079872F /* NumberInputField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberInputField.swift; sourceTree = "<group>"; };
 		3887E1932F04A10600680114 /* FACCalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FACCalculatorView.swift; sourceTree = "<group>"; };
 		3887E1952F04B25500680114 /* PensionOptionDescriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PensionOptionDescriptionView.swift; sourceTree = "<group>"; };
 		3887E1972F04E20400680114 /* SystemInformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemInformationView.swift; sourceTree = "<group>"; };
@@ -151,6 +161,11 @@
 		A1000043 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				387AAF1E2F09B4640079872F /* NumberInputField.swift */,
+				387AAF1C2F09B45B0079872F /* IntegerInputField.swift */,
+				387AAF1A2F09B1920079872F /* FACExplanationView.swift */,
+				387AAF182F09B1870079872F /* ActuarialFormulasView.swift */,
+				383115492F05A1B200FFF0AD /* SettingsView.swift */,
 				3887E19B2F04E83100680114 /* ShareSheet.swift */,
 				3887E1992F04E82800680114 /* EmployeeEntryCard.swift */,
 				3887E1972F04E20400680114 /* SystemInformationView.swift */,
@@ -240,6 +255,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3831154A2F05A1B200FFF0AD /* SettingsView.swift in Sources */,
 				3887E1982F04E20400680114 /* SystemInformationView.swift in Sources */,
 				3887E1962F04B25500680114 /* PensionOptionDescriptionView.swift in Sources */,
 				A1000001 /* FirePolicePensionCalcApp.swift in Sources */,
@@ -252,11 +268,15 @@
 				A1000009 /* PensionCalculatorDisbursements.swift in Sources */,
 				A1000011 /* PensionCalculatorPaymentsInto.swift in Sources */,
 				3887E19C2F04E83100680114 /* ShareSheet.swift in Sources */,
+				387AAF1F2F09B4640079872F /* NumberInputField.swift in Sources */,
 				A1000013 /* PensionCalculatorService.swift in Sources */,
 				A1000015 /* EmployeeDataLoader.swift in Sources */,
 				3845B1BB2F04790500EA1FF1 /* EmployeeListView.swift in Sources */,
+				387AAF1B2F09B1920079872F /* FACExplanationView.swift in Sources */,
 				A1000019 /* ConfigurationPersistence.swift in Sources */,
 				A1000021 /* PensionCalculatorViewModel.swift in Sources */,
+				387AAF192F09B1870079872F /* ActuarialFormulasView.swift in Sources */,
+				387AAF1D2F09B45B0079872F /* IntegerInputField.swift in Sources */,
 				A1000023 /* ConfigurationView.swift in Sources */,
 				A1000025 /* SystemResultsView.swift in Sources */,
 				A1000027 /* IndividualResultsView.swift in Sources */,
@@ -408,8 +428,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.firepolicepensioncalc.app;
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.essendavis.firepolicepensioncalc;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -440,8 +460,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.firepolicepensioncalc.app;
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.essendavis.firepolicepensioncalc;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
