@@ -9,6 +9,9 @@ import SwiftUI
 
 struct SystemInformationView: View {
     @ObservedObject var viewModel: PensionCalculatorViewModel
+    @State private var showPensionOptions = false
+    @State private var showFACExplanation = false
+    @State private var showActuarialFormulas = false
     
     init(viewModel: PensionCalculatorViewModel? = nil) {
         // Allow optional viewModel for preview
@@ -201,7 +204,7 @@ struct SystemInformationView: View {
                             .bold()
                         
                         VStack(spacing: 12) {
-                            NavigationLink(destination: PensionOptionDescriptionView()) {
+                            Button(action: { showPensionOptions = true }) {
                                 HStack {
                                     Image(systemName: "list.bullet.rectangle")
                                         .foregroundColor(.blue)
@@ -224,7 +227,7 @@ struct SystemInformationView: View {
                                 .cornerRadius(12)
                             }
                             
-                            NavigationLink(destination: FACExplanationView()) {
+                            Button(action: { showFACExplanation = true }) {
                                 HStack {
                                     Image(systemName: "calculator")
                                         .foregroundColor(.blue)
@@ -247,7 +250,7 @@ struct SystemInformationView: View {
                                 .cornerRadius(12)
                             }
                             
-                            NavigationLink(destination: ActuarialFormulasView()) {
+                            Button(action: { showActuarialFormulas = true }) {
                                 HStack {
                                     Image(systemName: "function")
                                         .foregroundColor(.blue)
@@ -280,6 +283,15 @@ struct SystemInformationView: View {
             .navigationBarTitleDisplayMode(.large)
         }
         .navigationViewStyle(StackNavigationViewStyle())
+        .sheet(isPresented: $showPensionOptions) {
+            PensionOptionDescriptionView()
+        }
+        .sheet(isPresented: $showFACExplanation) {
+            FACExplanationView()
+        }
+        .sheet(isPresented: $showActuarialFormulas) {
+            ActuarialFormulasView()
+        }
     }
 }
 

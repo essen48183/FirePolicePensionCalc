@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct PensionOptionDescriptionView: View {
+    @Environment(\.dismiss) var dismiss
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -44,6 +46,13 @@ struct PensionOptionDescriptionView: View {
             }
             .navigationTitle("Pension Options")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }

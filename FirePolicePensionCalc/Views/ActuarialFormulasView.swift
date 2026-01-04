@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ActuarialFormulasView: View {
+    @Environment(\.dismiss) var dismiss
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -290,6 +292,13 @@ struct ActuarialFormulasView: View {
             }
             .navigationTitle("Formulas & Practices")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }

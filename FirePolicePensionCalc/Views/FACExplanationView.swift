@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct FACExplanationView: View {
+    @Environment(\.dismiss) var dismiss
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -238,6 +240,13 @@ struct FACExplanationView: View {
             }
             .navigationTitle("FAC Calculation")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }
