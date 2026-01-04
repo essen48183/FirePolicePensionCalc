@@ -24,6 +24,13 @@
 		3887E1982F04E20400680114 /* SystemInformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E1972F04E20400680114 /* SystemInformationView.swift */; };
 		3887E19A2F04E82800680114 /* EmployeeEntryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E1992F04E82800680114 /* EmployeeEntryCard.swift */; };
 		3887E19C2F04E83100680114 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E19B2F04E83100680114 /* ShareSheet.swift */; };
+		388A14822F0B2DBA00C5CB50 /* DocumentationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 388A14812F0B2DBA00C5CB50 /* DocumentationView.swift */; };
+		388A14892F0B2EB500C5CB50 /* ACTUARIAL_ASSUMPTIONS.md in Resources */ = {isa = PBXBuildFile; fileRef = 388A14832F0B2EB500C5CB50 /* ACTUARIAL_ASSUMPTIONS.md */; };
+		388A148A2F0B2EB500C5CB50 /* QUICK_START.md in Resources */ = {isa = PBXBuildFile; fileRef = 388A14872F0B2EB500C5CB50 /* QUICK_START.md */; };
+		388A148B2F0B2EB500C5CB50 /* CALCULATION_FLOW.md in Resources */ = {isa = PBXBuildFile; fileRef = 388A14862F0B2EB500C5CB50 /* CALCULATION_FLOW.md */; };
+		388A148C2F0B2EB500C5CB50 /* RATE_USAGE_VERIFICATION.md in Resources */ = {isa = PBXBuildFile; fileRef = 388A14882F0B2EB500C5CB50 /* RATE_USAGE_VERIFICATION.md */; };
+		388A148D2F0B2EB500C5CB50 /* ACTUARIAL_MATH_VERIFICATION.md in Resources */ = {isa = PBXBuildFile; fileRef = 388A14842F0B2EB500C5CB50 /* ACTUARIAL_MATH_VERIFICATION.md */; };
+		388A148E2F0B2EB500C5CB50 /* ACTUARIAL_RULE.md in Resources */ = {isa = PBXBuildFile; fileRef = 388A14852F0B2EB500C5CB50 /* ACTUARIAL_RULE.md */; };
 		38A34C8D2F047EB800B97263 /* EmployeeEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A34C8C2F047EB800B97263 /* EmployeeEditView.swift */; };
 		A1000001 /* FirePolicePensionCalcApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002 /* FirePolicePensionCalcApp.swift */; };
 		A1000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004 /* ContentView.swift */; };
@@ -61,6 +68,13 @@
 		3887E1972F04E20400680114 /* SystemInformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemInformationView.swift; sourceTree = "<group>"; };
 		3887E1992F04E82800680114 /* EmployeeEntryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmployeeEntryCard.swift; sourceTree = "<group>"; };
 		3887E19B2F04E83100680114 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
+		388A14812F0B2DBA00C5CB50 /* DocumentationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentationView.swift; sourceTree = "<group>"; };
+		388A14832F0B2EB500C5CB50 /* ACTUARIAL_ASSUMPTIONS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ACTUARIAL_ASSUMPTIONS.md; sourceTree = "<group>"; };
+		388A14842F0B2EB500C5CB50 /* ACTUARIAL_MATH_VERIFICATION.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ACTUARIAL_MATH_VERIFICATION.md; sourceTree = "<group>"; };
+		388A14852F0B2EB500C5CB50 /* ACTUARIAL_RULE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ACTUARIAL_RULE.md; sourceTree = "<group>"; };
+		388A14862F0B2EB500C5CB50 /* CALCULATION_FLOW.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CALCULATION_FLOW.md; sourceTree = "<group>"; };
+		388A14872F0B2EB500C5CB50 /* QUICK_START.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = QUICK_START.md; sourceTree = "<group>"; };
+		388A14882F0B2EB500C5CB50 /* RATE_USAGE_VERIFICATION.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = RATE_USAGE_VERIFICATION.md; sourceTree = "<group>"; };
 		38A34C8C2F047EB800B97263 /* EmployeeEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmployeeEditView.swift; sourceTree = "<group>"; };
 		A1000000 /* FirePolicePensionCalc.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FirePolicePensionCalc.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1000002 /* FirePolicePensionCalcApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirePolicePensionCalcApp.swift; sourceTree = "<group>"; };
@@ -160,6 +174,12 @@
 		A1000041 /* Data */ = {
 			isa = PBXGroup;
 			children = (
+				388A14832F0B2EB500C5CB50 /* ACTUARIAL_ASSUMPTIONS.md */,
+				388A14842F0B2EB500C5CB50 /* ACTUARIAL_MATH_VERIFICATION.md */,
+				388A14852F0B2EB500C5CB50 /* ACTUARIAL_RULE.md */,
+				388A14862F0B2EB500C5CB50 /* CALCULATION_FLOW.md */,
+				388A14872F0B2EB500C5CB50 /* QUICK_START.md */,
+				388A14882F0B2EB500C5CB50 /* RATE_USAGE_VERIFICATION.md */,
 				A1000016 /* EmployeeDataLoader.swift */,
 				A1000018 /* employees.json */,
 			);
@@ -177,6 +197,7 @@
 		A1000043 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				388A14812F0B2DBA00C5CB50 /* DocumentationView.swift */,
 				387AAF262F0AFA4E0079872F /* ComparisonView.swift */,
 				387AAF242F0AE4990079872F /* FinancialDisclosureView.swift */,
 				387AAF1E2F09B4640079872F /* NumberInputField.swift */,
@@ -263,6 +284,12 @@
 				A1000032 /* Preview Assets.xcassets in Resources */,
 				A1000029 /* Assets.xcassets in Resources */,
 				A1000017 /* employees.json in Resources */,
+				388A14892F0B2EB500C5CB50 /* ACTUARIAL_ASSUMPTIONS.md in Resources */,
+				388A148A2F0B2EB500C5CB50 /* QUICK_START.md in Resources */,
+				388A148B2F0B2EB500C5CB50 /* CALCULATION_FLOW.md in Resources */,
+				388A148C2F0B2EB500C5CB50 /* RATE_USAGE_VERIFICATION.md in Resources */,
+				388A148D2F0B2EB500C5CB50 /* ACTUARIAL_MATH_VERIFICATION.md in Resources */,
+				388A148E2F0B2EB500C5CB50 /* ACTUARIAL_RULE.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -280,6 +307,7 @@
 				3887E1942F04A10600680114 /* FACCalculatorView.swift in Sources */,
 				A1000003 /* ContentView.swift in Sources */,
 				A1000005 /* Employee.swift in Sources */,
+				388A14822F0B2DBA00C5CB50 /* DocumentationView.swift in Sources */,
 				A1000007 /* PensionConfiguration.swift in Sources */,
 				38A34C8D2F047EB800B97263 /* EmployeeEditView.swift in Sources */,
 				3887E19A2F04E82800680114 /* EmployeeEntryCard.swift in Sources */,

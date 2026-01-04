@@ -99,8 +99,9 @@ class PensionCalculatorService {
             )
             
             // Calculate employee contribution using PensionMathCalculations
+            // Use average wage for system-wide calculations to better reflect actual contribution patterns
             let employeeContribution = PensionMathCalculations.calculateTotalEmployeeContribution(
-                baseWage: config.systemWideBaseWage,
+                baseWage: config.systemWideAverageWage,
                 contributionPercent: config.employeeContributionPercent,
                 yearsOfService: yearsToRetire
             )
@@ -108,7 +109,13 @@ class PensionCalculatorService {
             // Calculate amount needed at retirement to fund the annuity
             // ACTUARIAL RULE: We need 100% of expected lifetime benefits at retirement.
             // SYSTEM-WIDE RULE: Always use Option 1 (no survivor) - only retiree's payments
-            // Calculate sum of all nominal payments (with COLA, without inflation)
+            //
+            // UNITS: This calculates the sum in NOMINAL DOLLARS (retirement-date dollars)
+            // - Includes COLA increases (dollar amounts increase)
+            // - Does NOT include inflation adjustments (we need actual dollars, not buying power)
+            // - This is different from totalPayout which is in today's buying power
+            // - For funding, we need nominal dollars because that's what will actually be paid
+            //
             // Only retiree's portion - no survivor benefits for system-wide calculations
             let employeeLifeExpectancy = employee.sex == .male ? config.lifeExpectancyMale : config.lifeExpectancyFemale
             let yearsRetired = employeeLifeExpectancy + config.deltaExtraLife - employeeEarliestEligibleRetirementAge
@@ -138,6 +145,12 @@ class PensionCalculatorService {
                 compoundsPerYear: 1
             )
             
+            // IMPORTANT: Units distinction
+            // - disbursementResult.totalPayout: Sum in TODAY'S BUYING POWER (inflation-adjusted)
+            //   Used for display/understanding of benefit value in current dollars
+            // - amountNeededAtRetirement: Sum in NOMINAL DOLLARS (with COLA, without inflation)
+            //   Used for funding calculations - actual dollars needed at retirement date
+            // These are intentionally different units for different purposes
             totalDisbursements += disbursementResult.totalPayout
             totalCityContributions += cityContribution
             totalEmployeeContributions += employeeContribution
@@ -173,8 +186,9 @@ class PensionCalculatorService {
             }
             
             // Calculate future value of employee contributions using PensionMathCalculations
+            // Use average wage for system-wide calculations to better reflect actual contribution patterns
             let annualEmployeeContribution = PensionMathCalculations.calculateAnnualEmployeeContribution(
-                baseWage: config.systemWideBaseWage,
+                baseWage: config.systemWideAverageWage,
                 contributionPercent: config.employeeContributionPercent
             )
             let employeeContributionsFV = PensionMathFormulas.futureValueOfAnnuity(
@@ -258,8 +272,9 @@ class PensionCalculatorService {
             }
             
             // Calculate future value of employee contributions using PensionMathCalculations
+            // Use average wage for system-wide calculations to better reflect actual contribution patterns
             let annualEmployeeContribution = PensionMathCalculations.calculateAnnualEmployeeContribution(
-                baseWage: config.systemWideBaseWage,
+                baseWage: config.systemWideAverageWage,
                 contributionPercent: config.employeeContributionPercent
             )
             let employeeContributionsFV = PensionMathFormulas.futureValueOfAnnuity(
@@ -336,21 +351,8 @@ class PensionCalculatorService {
         let hireAge = config.fictionalHiredYear - config.fictionalBirthYear
         
         // Calculate years needed to retire using fictionalYearsOfWork from blue box
-        // If early retirement is authorized, use years of work directly; otherwise respect constraints
-        let yearsToRetire: Int
-        if config.earlyRetirementAuthorized {
-            // If early retirement is authorized, use years of work directly
-            yearsToRetire = config.fictionalYearsOfWork
-        } else if (hireAge + config.fictionalYearsOfWork) < config.minAgeForYearsService {
-            // If years of work wouldn't reach min age, use min age constraint
-            yearsToRetire = config.minAgeForYearsService - hireAge
-        } else if config.retirementAge <= (config.fictionalYearsOfWork + hireAge) {
-            // If retirement age would be reached before completing years of work, use retirement age
-            yearsToRetire = config.retirementAge - hireAge
-        } else {
-            // Use the chosen years of work from blue box
-            yearsToRetire = config.fictionalYearsOfWork
-        }
+        // Always use the chosen years of work directly
+        let yearsToRetire = config.fictionalYearsOfWork
         
         let retirementAge = hireAge + yearsToRetire
         

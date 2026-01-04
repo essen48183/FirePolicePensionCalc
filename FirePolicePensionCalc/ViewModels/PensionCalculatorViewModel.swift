@@ -152,7 +152,6 @@ class PensionCalculatorViewModel: ObservableObject {
                a.fictionalSpouseBirthYear == b.fictionalSpouseBirthYear &&
                a.fictionalSpouseSex == b.fictionalSpouseSex &&
                a.fictionalYearsOfWork == b.fictionalYearsOfWork &&
-               a.earlyRetirementAuthorized == b.earlyRetirementAuthorized &&
                a.facBaseWageYear1 == b.facBaseWageYear1 &&
                a.facOvertimeYear1 == b.facOvertimeYear1 &&
                a.facRollInsYear1 == b.facRollInsYear1 &&

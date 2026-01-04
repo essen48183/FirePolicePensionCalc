@@ -10,6 +10,10 @@ import Foundation
 class PensionCalculatorDisbursements {
     
     struct DisbursementResult {
+        /// Total lifetime benefit in TODAY'S BUYING POWER (inflation-adjusted)
+        /// This represents the sum of all payments adjusted for inflation to show real purchasing power
+        /// Used for display and understanding of benefit value
+        /// NOTE: This is different from amountNeededAtRetirement which is in nominal dollars for funding
         let totalPayout: Double
         let initialAnnualPension: Double
         let finalAnnualPension: Double

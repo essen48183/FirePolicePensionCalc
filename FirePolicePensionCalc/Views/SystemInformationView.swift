@@ -12,6 +12,7 @@ struct SystemInformationView: View {
     @State private var showPensionOptions = false
     @State private var showFACExplanation = false
     @State private var showActuarialFormulas = false
+    @State private var showDocumentation = false
     
     init(viewModel: PensionCalculatorViewModel? = nil) {
         // Allow optional viewModel for preview
@@ -204,6 +205,29 @@ struct SystemInformationView: View {
                             .bold()
                         
                         VStack(spacing: 12) {
+                            Button(action: { showDocumentation = true }) {
+                                HStack {
+                                    Image(systemName: "book.fill")
+                                        .foregroundColor(.blue)
+                                        .font(.title3)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Documentation")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("View all documentation files")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                        .font(.caption)
+                                }
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(12)
+                            }
+                            
                             Button(action: { showPensionOptions = true }) {
                                 HStack {
                                     Image(systemName: "list.bullet.rectangle")
@@ -291,6 +315,9 @@ struct SystemInformationView: View {
         }
         .sheet(isPresented: $showActuarialFormulas) {
             ActuarialFormulasView()
+        }
+        .sheet(isPresented: $showDocumentation) {
+            DocumentationView()
         }
     }
 }

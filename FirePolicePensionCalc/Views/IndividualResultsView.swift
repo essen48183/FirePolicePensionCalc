@@ -39,6 +39,14 @@ struct IndividualResultsView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                     .padding(.top, 4)
+                                
+                                // Show eligibility warning if not met
+                                if let warning = calculateEligibilityWarning() {
+                                    Text(warning)
+                                        .foregroundColor(.red)
+                                        .font(.headline)
+                                        .padding(.top, 8)
+                                }
                             }
                             .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
                             .listRowSeparator(.hidden)
@@ -158,8 +166,13 @@ struct IndividualResultsView: View {
                             Text("• Age-triggered: \(viewModel.config.retirementAge) years old")
                             Text("• Years of service: \(viewModel.config.careerYearsService) years of service")
                             Text("• Minimum age for years of service: \(viewModel.config.minAgeForYearsService) years old")
-                            if viewModel.config.earlyRetirementAuthorized {
-                                Text("• Early retirement authorized")
+                            
+                            // Show eligibility warning if not met
+                            if let warning = calculateEligibilityWarning() {
+                                Text(warning)
+                                    .foregroundColor(.red)
+                                    .font(.headline)
+                                    .padding(.top, 8)
                             }
                             if viewModel.config.multiplierBasedOnFAC {
                                 Text("FAC Wage: \(formatCurrency(viewModel.config.facWage))")
@@ -210,40 +223,16 @@ struct IndividualResultsView: View {
     }
     
     private func calculateEmployeeContribution() -> Double {
-        // Calculate years needed to retire using fictionalYearsOfWork from blue box (same logic as service)
-        let hireAge = calculateHireAge()
-        let yearsToRetire: Int
-        
-        // If early retirement is authorized, use years of work directly
-        if viewModel.config.earlyRetirementAuthorized {
-            yearsToRetire = viewModel.config.fictionalYearsOfWork
-        } else if (hireAge + viewModel.config.fictionalYearsOfWork) < viewModel.config.minAgeForYearsService {
-            yearsToRetire = viewModel.config.minAgeForYearsService - hireAge
-        } else if viewModel.config.retirementAge <= (viewModel.config.fictionalYearsOfWork + hireAge) {
-            yearsToRetire = viewModel.config.retirementAge - hireAge
-        } else {
-            yearsToRetire = viewModel.config.fictionalYearsOfWork
-        }
+        // Always use the chosen years of work directly
+        let yearsToRetire = viewModel.config.fictionalYearsOfWork
         
         // Employee contribution is percentage of base wage over career
         return viewModel.config.baseWage * (viewModel.config.employeeContributionPercent / 100.0) * Double(yearsToRetire)
     }
     
     private func calculateOption1Pension() -> Double {
-        // Calculate years needed to retire using fictionalYearsOfWork from blue box (same logic as service)
-        let hireAge = calculateHireAge()
-        let yearsToRetire: Int
-        
-        // If early retirement is authorized, use years of work directly
-        if viewModel.config.earlyRetirementAuthorized {
-            yearsToRetire = viewModel.config.fictionalYearsOfWork
-        } else if (hireAge + viewModel.config.fictionalYearsOfWork) < viewModel.config.minAgeForYearsService {
-            yearsToRetire = viewModel.config.minAgeForYearsService - hireAge
-        } else if viewModel.config.retirementAge <= (viewModel.config.fictionalYearsOfWork + hireAge) {
-            yearsToRetire = viewModel.config.retirementAge - hireAge
-        } else {
-            yearsToRetire = viewModel.config.fictionalYearsOfWork
-        }
+        // Always use the chosen years of work directly
+        let yearsToRetire = viewModel.config.fictionalYearsOfWork
         
         // Calculate Option 1 (maximum) pension amount
         let earningsBasedOn = viewModel.config.multiplierBasedOnFAC ? viewModel.config.facWage : viewModel.config.baseWage
@@ -278,24 +267,71 @@ struct IndividualResultsView: View {
     }
     
     private func calculateRetireAge() -> Int {
-        // Calculate years needed to retire using fictionalYearsOfWork from blue box (same logic as service)
+        // Always use the chosen years of work directly
         let hireAge = calculateHireAge()
-        let yearsToRetire: Int
-        
-        // If early retirement is authorized, use years of work directly
-        if viewModel.config.earlyRetirementAuthorized {
-            yearsToRetire = viewModel.config.fictionalYearsOfWork
-        } else if (hireAge + viewModel.config.fictionalYearsOfWork) < viewModel.config.minAgeForYearsService {
-            // If years of work wouldn't reach min age, use min age constraint
-            yearsToRetire = viewModel.config.minAgeForYearsService - hireAge
-        } else if viewModel.config.retirementAge <= (viewModel.config.fictionalYearsOfWork + hireAge) {
-            // If retirement age would be reached before completing years of work, use retirement age
-            yearsToRetire = viewModel.config.retirementAge - hireAge
-        } else {
-            // Use the chosen years of work from blue box
-            yearsToRetire = viewModel.config.fictionalYearsOfWork
-        }
+        let yearsToRetire = viewModel.config.fictionalYearsOfWork
         return hireAge + yearsToRetire
+    }
+    
+    private func calculateEligibilityWarning() -> String? {
+        let config = viewModel.config
+        let hireAge = calculateHireAge()
+        let yearsOfWork = config.fictionalYearsOfWork
+        let retirementAgeAtWorkEnd = hireAge + yearsOfWork
+        
+        // Check if they meet normal retirement age
+        let meetsNormalRetirement = retirementAgeAtWorkEnd >= config.retirementAge
+        
+        // Check if they meet early retirement (min age + years of service)
+        let meetsEarlyRetirement = retirementAgeAtWorkEnd >= config.minAgeForYearsService && yearsOfWork >= config.careerYearsService
+        
+        // If they meet either requirement, no warning needed
+        if meetsNormalRetirement || meetsEarlyRetirement {
+            return nil
+        }
+        
+        // Calculate what's needed
+        var yearsShort: Int = 0
+        var ageWhenBenefitsStart: Int = 0
+        var warningMessage = ""
+        
+        // Calculate when they would meet early retirement requirements
+        let yearsToEarlyRetirementService = max(0, config.careerYearsService - yearsOfWork)
+        let yearsToEarlyRetirementAge = max(0, config.minAgeForYearsService - retirementAgeAtWorkEnd)
+        
+        // Age when they would have enough years of service
+        let ageWithEnoughYears = hireAge + config.careerYearsService
+        
+        // Age when they would meet the minimum age requirement
+        let ageForMinAge = config.minAgeForYearsService
+        
+        // Determine which constraint is limiting (age or years of service)
+        if yearsToEarlyRetirementService > 0 && yearsToEarlyRetirementAge > 0 {
+            // Need both more years of service AND need to be older
+            // Benefits start when BOTH conditions are met
+            ageWhenBenefitsStart = max(ageWithEnoughYears, ageForMinAge)
+            yearsShort = max(yearsToEarlyRetirementService, yearsToEarlyRetirementAge)
+            
+            if ageWithEnoughYears >= ageForMinAge {
+                // Years of service is the limiting factor
+                warningMessage = "⚠️ Retirement eligibility not met. The benefit amounts shown are calculated with \(yearsOfWork) years of service (inadequate for full eligibility). Benefits will not start until age \(ageWhenBenefitsStart) (minimum age \(config.minAgeForYearsService) with \(config.careerYearsService) years of service). Need \(yearsToEarlyRetirementService) more year\(yearsToEarlyRetirementService == 1 ? "" : "s") of service."
+            } else {
+                // Age is the limiting factor
+                warningMessage = "⚠️ Retirement eligibility not met. The benefit amounts shown are calculated with \(yearsOfWork) years of service (inadequate for full eligibility). Benefits will not start until age \(ageWhenBenefitsStart) (minimum age \(config.minAgeForYearsService) with \(config.careerYearsService) years of service). Need to be age \(ageForMinAge) (in \(yearsToEarlyRetirementAge) year\(yearsToEarlyRetirementAge == 1 ? "" : "s"))."
+            }
+        } else if yearsToEarlyRetirementService > 0 {
+            // Only need more years of service
+            ageWhenBenefitsStart = ageWithEnoughYears
+            yearsShort = yearsToEarlyRetirementService
+            warningMessage = "⚠️ Retirement eligibility not met. The benefit amounts shown are calculated with \(yearsOfWork) years of service (inadequate for full eligibility). Benefits will not start until age \(ageWhenBenefitsStart) (minimum age \(config.minAgeForYearsService) with \(config.careerYearsService) years of service). Need \(yearsShort) more year\(yearsShort == 1 ? "" : "s") of service."
+        } else if yearsToEarlyRetirementAge > 0 {
+            // Only need to be older
+            ageWhenBenefitsStart = ageForMinAge
+            yearsShort = yearsToEarlyRetirementAge
+            warningMessage = "⚠️ Retirement eligibility not met. The benefit amounts shown are calculated with \(yearsOfWork) years of service (inadequate for full eligibility). Benefits will not start until age \(ageWhenBenefitsStart) (minimum age \(config.minAgeForYearsService) with \(config.careerYearsService) years of service). Need to be age \(ageWhenBenefitsStart) (in \(yearsShort) year\(yearsShort == 1 ? "" : "s"))."
+        }
+        
+        return warningMessage
     }
     
     private func calculateCOLAInfo(result: (disbursement: PensionCalculatorDisbursements.DisbursementResult, cityContribution: Double)) -> String? {

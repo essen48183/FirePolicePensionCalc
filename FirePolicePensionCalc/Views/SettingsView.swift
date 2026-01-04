@@ -153,7 +153,7 @@ struct SettingsView: View {
         }
         .fileImporter(
             isPresented: $showDocumentPicker,
-            allowedContentTypes: [.json],
+            allowedContentTypes: [.commaSeparatedText, .json],
             allowsMultipleSelection: false
         ) { result in
             switch result {
@@ -175,17 +175,28 @@ struct SettingsView: View {
     
     private func exportEmployees() {
         do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-            let data = try encoder.encode(viewModel.employees)
+            // Generate CSV content
+            var csv = "id,name,hiredYear,dateOfBirth,spouseDateOfBirth,sex,spouseSex\n"
+            
+            for employee in viewModel.employees {
+                let id = String(employee.id)
+                let name = escapeCSVField(employee.name)
+                let hiredYear = String(employee.hiredYear)
+                let dateOfBirth = String(employee.dateOfBirth)
+                let spouseDateOfBirth = String(employee.spouseDateOfBirth)
+                let sex = employee.sex.rawValue
+                let spouseSex = employee.spouseSex?.rawValue ?? ""
+                
+                csv += "\(id),\(name),\(hiredYear),\(dateOfBirth),\(spouseDateOfBirth),\(sex),\(spouseSex)\n"
+            }
             
             // Create a temporary file with a readable name
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd_HHmmss"
-            let fileName = "employees_backup_\(dateFormatter.string(from: Date())).json"
+            let fileName = "employees_backup_\(dateFormatter.string(from: Date())).csv"
             let tempURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent(fileName)
-            try data.write(to: tempURL)
+            try csv.write(to: tempURL, atomically: true, encoding: .utf8)
             
             // Verify file was created and is accessible
             guard FileManager.default.fileExists(atPath: tempURL.path) else {
@@ -249,13 +260,13 @@ struct SettingsView: View {
     
     private func importEmployees(from url: URL) {
         do {
-            let data = try Data(contentsOf: url)
-            let decoder = JSONDecoder()
-            let importedEmployees = try decoder.decode([Employee].self, from: data)
+            // Try CSV first
+            let csvString = try String(contentsOf: url, encoding: .utf8)
+            let importedEmployees = try parseCSV(csvString)
             
             // Validate employees
             guard !importedEmployees.isEmpty else {
-                restoreErrorMessage = "The backup file is empty."
+                restoreErrorMessage = "The backup file is empty or contains no valid employee data."
                 showRestoreError = true
                 return
             }
@@ -269,9 +280,119 @@ struct SettingsView: View {
             
             showRestoreSuccess = true
         } catch {
-            restoreErrorMessage = "Error importing employees: \(error.localizedDescription)"
-            showRestoreError = true
+            // Try JSON as fallback for backward compatibility
+            do {
+                let data = try Data(contentsOf: url)
+                let decoder = JSONDecoder()
+                let importedEmployees = try decoder.decode([Employee].self, from: data)
+                
+                guard !importedEmployees.isEmpty else {
+                    restoreErrorMessage = "The backup file is empty."
+                    showRestoreError = true
+                    return
+                }
+                
+                viewModel.employees = importedEmployees
+                viewModel.config.totalNumberEmployees = importedEmployees.count
+                try EmployeeDataLoader.saveEmployees(importedEmployees)
+                showRestoreSuccess = true
+            } catch {
+                restoreErrorMessage = "Error importing employees: \(error.localizedDescription)\n\nPlease ensure the file is a valid CSV or JSON file."
+                showRestoreError = true
+            }
         }
+    }
+    
+    // MARK: - CSV Helper Methods
+    
+    private func parseCSV(_ csvString: String) throws -> [Employee] {
+        let lines = csvString.components(separatedBy: .newlines).filter { !$0.isEmpty }
+        guard !lines.isEmpty else { return [] }
+        
+        // Parse header
+        let header = parseCSVLine(lines[0])
+        guard header.count >= 6 else {
+            throw NSError(domain: "SettingsView", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid CSV header"])
+        }
+        
+        // Find column indices
+        let idIndex = header.firstIndex(of: "id") ?? 0
+        let nameIndex = header.firstIndex(of: "name") ?? 1
+        let hiredYearIndex = header.firstIndex(of: "hiredYear") ?? 2
+        let dateOfBirthIndex = header.firstIndex(of: "dateOfBirth") ?? 3
+        let spouseDateOfBirthIndex = header.firstIndex(of: "spouseDateOfBirth") ?? 4
+        let sexIndex = header.firstIndex(of: "sex") ?? 5
+        let spouseSexIndex = header.firstIndex(of: "spouseSex")
+        
+        var employees: [Employee] = []
+        var nextId = 1
+        
+        // Parse data rows
+        for (index, line) in lines.enumerated() {
+            if index == 0 { continue } // Skip header
+            
+            let columns = parseCSVLine(line)
+            guard columns.count >= 6 else { continue }
+            
+            let id = Int(columns[idIndex]) ?? nextId
+            nextId = max(nextId, id + 1)
+            let name = columns[nameIndex].trimmingCharacters(in: .whitespacesAndNewlines)
+            let hiredYear = Int(columns[hiredYearIndex]) ?? 0
+            let dateOfBirth = Int(columns[dateOfBirthIndex]) ?? 0
+            let spouseDateOfBirth = Int(columns[spouseDateOfBirthIndex]) ?? 0
+            let sexString = columns[sexIndex].trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+            let sex: Sex = (sexString == "F" || sexString == "FEMALE") ? .female : .male
+            
+            var spouseSex: Sex? = nil
+            if let spouseSexIndex = spouseSexIndex, spouseSexIndex < columns.count {
+                let spouseSexString = columns[spouseSexIndex].trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+                if !spouseSexString.isEmpty && spouseDateOfBirth > 0 {
+                    spouseSex = (spouseSexString == "M" || spouseSexString == "MALE") ? .male : .female
+                }
+            }
+            
+            let employee = Employee(
+                id: id,
+                name: name,
+                hiredYear: hiredYear,
+                dateOfBirth: dateOfBirth,
+                spouseDateOfBirth: spouseDateOfBirth,
+                sex: sex,
+                spouseSex: spouseSex
+            )
+            employees.append(employee)
+        }
+        
+        return employees
+    }
+    
+    private func parseCSVLine(_ line: String) -> [String] {
+        var result: [String] = []
+        var current = ""
+        var inQuotes = false
+        
+        for char in line {
+            if char == "\"" {
+                inQuotes.toggle()
+            } else if char == "," && !inQuotes {
+                result.append(current)
+                current = ""
+            } else {
+                current.append(char)
+            }
+        }
+        result.append(current) // Add last field
+        
+        return result.map { $0.trimmingCharacters(in: CharacterSet(charactersIn: "\"")) }
+    }
+    
+    private func escapeCSVField(_ field: String) -> String {
+        // If field contains comma, quote, or newline, wrap in quotes and escape quotes
+        if field.contains(",") || field.contains("\"") || field.contains("\n") {
+            let escaped = field.replacingOccurrences(of: "\"", with: "\"\"")
+            return "\"\(escaped)\""
+        }
+        return field
     }
     
     private func clearAllEmployees() {

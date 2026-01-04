@@ -18,9 +18,7 @@ struct ConfigurationView: View {
     
     private func validateRetirementEligibility() -> Bool {
         let config = viewModel.config
-        let hireAge = config.fictionalHiredYear - config.fictionalBirthYear
         let yearsOfWork = config.fictionalYearsOfWork
-        let retirementAgeAtWorkEnd = hireAge + yearsOfWork
         
         // Must be vested
         if yearsOfWork < config.yearsUntilVestment {
@@ -28,19 +26,7 @@ struct ConfigurationView: View {
             return false
         }
         
-        // Must meet retirement eligibility: either normal retirement age OR early retirement authorized OR early retirement (min age + years of service)
-        // Note: Uses >= so exact match passes (e.g., 20 years of work passes when careerYearsService is 20)
-        let meetsNormalRetirement = retirementAgeAtWorkEnd >= config.retirementAge
-        let meetsEarlyRetirement = retirementAgeAtWorkEnd >= config.minAgeForYearsService && yearsOfWork >= config.careerYearsService
-        
-        if !meetsNormalRetirement && !config.earlyRetirementAuthorized && !meetsEarlyRetirement {
-            validationErrorMessage = "Retirement eligibility not met. At \(retirementAgeAtWorkEnd) years old with \(yearsOfWork) years of service:\n\n" +
-                "• Must be at least \(config.retirementAge) years old (normal retirement), OR\n" +
-                "• Must have 'Early Retirement Authorized' checked, OR\n" +
-                "• Must be at least \(config.minAgeForYearsService) years old AND have at least \(config.careerYearsService) years of service (early retirement)."
-            return false
-        }
-        
+        // Always allow calculation - eligibility warnings will be shown in results
         return true
     }
     
@@ -133,7 +119,6 @@ struct ConfigurationView: View {
             handleConfigChange()
         }
         .onChange(of: viewModel.config.fictionalYearsOfWork) { _ in handleConfigChange() }
-        .onChange(of: viewModel.config.earlyRetirementAuthorized) { _ in handleConfigChange() }
     }
     
     private var individualInfoSection: some View {
@@ -291,9 +276,6 @@ struct ConfigurationView: View {
                             )
                         }
                         .padding(.vertical, 4)
-                        
-                        Toggle("Early Retirement Authorized", isOn: $viewModel.config.earlyRetirementAuthorized)
-                            .padding(.vertical, 4)
                         
                         HStack {
                             Text("Pension Option")

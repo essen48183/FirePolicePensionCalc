@@ -162,16 +162,19 @@ struct PensionMathCalculations {
     // MARK: - Contribution Calculations
     
     /// Calculate total employee contribution over career
+    /// Uses average wage assumption to reflect contributions over a career where wages increase
     /// - Parameters:
-    ///   - baseWage: Base wage amount
+    ///   - baseWage: Wage amount to use (base wage for individual, average wage for system-wide)
     ///   - contributionPercent: Employee contribution percentage (e.g., 6.0 for 6%)
     ///   - yearsOfService: Years of service
-    /// - Returns: Total employee contribution (nominal sum)
+    /// - Returns: Total employee contribution (nominal sum based on average wage assumption)
     static func calculateTotalEmployeeContribution(
         baseWage: Double,
         contributionPercent: Double,
         yearsOfService: Int
     ) -> Double {
+        // Use average wage to represent contributions over a career where wages increase
+        // This provides a more realistic estimate than using starting base wage
         let annualContribution = baseWage * (contributionPercent / 100.0)
         return annualContribution * Double(yearsOfService)
     }

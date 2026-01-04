@@ -92,7 +92,14 @@ struct PensionMathFormulas {
     }
     
     /// Calculate amount needed at retirement accounting for COLA increases
-    /// This calculates the sum of all nominal payments (with COLA, without inflation)
+    /// 
+    /// UNITS: Returns sum in NOMINAL DOLLARS (retirement-date dollars)
+    /// - Includes COLA increases (dollar amounts increase over time)
+    /// - Does NOT include inflation adjustments (we need actual dollars for funding)
+    /// - This is different from totalPayout which is in today's buying power
+    /// 
+    /// PURPOSE: Used for funding calculations - determines actual dollars needed at retirement
+    /// 
     /// Includes both retiree and survivor benefits
     /// - Parameters:
     ///   - initialAnnualPayment: Initial annual pension payment (retiree)
