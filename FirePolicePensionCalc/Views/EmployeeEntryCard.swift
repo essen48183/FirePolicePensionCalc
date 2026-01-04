@@ -58,6 +58,19 @@ struct EmployeeEntryCard: View {
                 }
                 
                 HStack {
+                    Text("Sex")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .frame(width: 100, alignment: .leading)
+                    Picker("", selection: $employee.sex) {
+                        Text("M").tag(Sex.male)
+                        Text("F").tag(Sex.female)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 120)
+                }
+                
+                HStack {
                     HStack(spacing: 4) {
                         Text("Spouse DOB")
                             .font(.subheadline)
@@ -70,6 +83,32 @@ struct EmployeeEntryCard: View {
                     TextField("0 for no spouse", value: $employee.spouseDateOfBirth, format: .number.grouping(.never))
                         .keyboardType(.numberPad)
                         .textFieldStyle(.roundedBorder)
+                        .onChange(of: employee.spouseDateOfBirth) { newValue in
+                            // If spouse DOB is set to 0, clear spouse sex; otherwise default to female if nil
+                            if newValue == 0 {
+                                employee.spouseSex = nil
+                            } else if employee.spouseSex == nil {
+                                employee.spouseSex = .female
+                            }
+                        }
+                }
+                
+                if employee.spouseDateOfBirth > 0 {
+                    HStack {
+                        Text("Spouse Sex")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .frame(width: 100, alignment: .leading)
+                        Picker("", selection: Binding(
+                            get: { employee.spouseSex ?? .female },
+                            set: { employee.spouseSex = $0 }
+                        )) {
+                            Text("M").tag(Sex.male)
+                            Text("F").tag(Sex.female)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 120)
+                    }
                 }
             }
         }
@@ -86,7 +125,9 @@ struct EmployeeEntryCard: View {
             name: "John Doe",
             hiredYear: 2020,
             dateOfBirth: 1990,
-            spouseDateOfBirth: 1992
+            spouseDateOfBirth: 1992,
+            sex: .male,
+            spouseSex: .female
         ))
     )
     .padding()

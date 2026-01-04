@@ -100,8 +100,10 @@ struct ConfigurationView: View {
         .onChange(of: viewModel.config.expectedFutureInflationRate) { _ in handleConfigChange() }
         .onChange(of: viewModel.config.expectedSystemFutureRateReturn) { _ in handleConfigChange() }
         .onChange(of: viewModel.config.employeeContributionPercent) { _ in handleConfigChange() }
-        .onChange(of: viewModel.config.lifeExpectancy) { _ in handleConfigChange() }
-        .onChange(of: viewModel.config.lifeExpectancySpouse) { _ in handleConfigChange() }
+        .onChange(of: viewModel.config.lifeExpectancyMale) { _ in handleConfigChange() }
+        .onChange(of: viewModel.config.lifeExpectancyFemale) { _ in handleConfigChange() }
+        .onChange(of: viewModel.config.fictionalEmployeeSex) { _ in handleConfigChange() }
+        .onChange(of: viewModel.config.fictionalSpouseSex) { _ in handleConfigChange() }
         .onChange(of: viewModel.config.pensionOption) { _ in handleConfigChange() }
         .onAppear {
             // Initialize derived values on appear
@@ -160,7 +162,7 @@ struct ConfigurationView: View {
                         HStack {
                             Text("Fixed/Base Wage")
                             Spacer()
-                            NumberInputField(
+                             NumberInputField(
                                 title: "Fixed/Base Wage",
                                 value: $viewModel.config.baseWage,
                                 defaultValue: 85000,
@@ -193,6 +195,8 @@ struct ConfigurationView: View {
                                     .foregroundColor(.white)
                                     .cornerRadius(6)
                             }
+                            .buttonStyle(.plain)
+                            .fixedSize()
                             Spacer()
                             NumberInputField(
                                 title: "FAC Wage",
@@ -233,6 +237,18 @@ struct ConfigurationView: View {
                         .padding(.vertical, 4)
                         
                         HStack {
+                            Text("Sex")
+                            Spacer()
+                            Picker("", selection: $viewModel.config.fictionalEmployeeSex) {
+                                Text("M").tag(Sex.male)
+                                Text("F").tag(Sex.female)
+                            }
+                            .pickerStyle(.segmented)
+                            .frame(width: 120)
+                        }
+                        .padding(.vertical, 4)
+                        
+                        HStack {
                             Text("Spouse Year Born")
                             Spacer()
                             IntegerInputField(
@@ -243,6 +259,20 @@ struct ConfigurationView: View {
                             )
                         }
                         .padding(.vertical, 4)
+                        
+                        if viewModel.config.fictionalSpouseBirthYear > 0 {
+                            HStack {
+                                Text("Spouse Sex")
+                                Spacer()
+                                Picker("", selection: $viewModel.config.fictionalSpouseSex) {
+                                    Text("M").tag(Sex.male)
+                                    Text("F").tag(Sex.female)
+                                }
+                                .pickerStyle(.segmented)
+                                .frame(width: 120)
+                            }
+                            .padding(.vertical, 4)
+                        }
                         
                         HStack {
                             Text("Years of Work")
@@ -438,6 +468,8 @@ struct ConfigurationView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(6)
                         }
+                        .buttonStyle(.plain)
+                        .fixedSize()
                         Spacer()
                         NumberInputField(
                             title: "System-Wide Avg Retiree FAC Wage",
@@ -462,9 +494,9 @@ struct ConfigurationView: View {
     }
     
     private var economicAssumptionsSection: some View {
-        Section(header: Text("Economic Assumptions")) {
+        Section(header: Text("Actuarial Economic Assumptions")) {
                     HStack {
-                        Text("Inflation Rate (%) 2.63 is the historical average")
+                        Text("Inflation Rate (%) Actuary uses for your system (2.63 is the historical average)")
                         Spacer()
                         NumberInputField(
                             title: "Inflation Rate (%)",
@@ -486,7 +518,7 @@ struct ConfigurationView: View {
                         )
                     }
                     HStack {
-                        Text("Employee Contribution (%)")
+                        Text("Employee Contribution (%) - if your employee contributions go to a separate annuity, not the pension fund, set this to 0")
                         Spacer()
                         NumberInputField(
                             title: "Employee Contribution (%)",
@@ -497,21 +529,21 @@ struct ConfigurationView: View {
                         )
                     }
                     HStack {
-                        Text("Worker Life Expectancy (years)")
+                        Text("Male Life Expectancy - adjust only if your system uses different figures")
                         Spacer()
                         IntegerInputField(
-                            title: "Worker Life Expectancy (years)",
-                            value: $viewModel.config.lifeExpectancy,
+                            title: "Male Life Expectancy (years)",
+                            value: $viewModel.config.lifeExpectancyMale,
                             defaultValue: 73,
                             keyboardType: .numberPad
                         )
                     }
                     HStack {
-                        Text("Spouse Life Expectancy (years)")
+                        Text("Female Life Expectancy - adjust only if your system uses different figures")
                         Spacer()
                         IntegerInputField(
-                            title: "Spouse Life Expectancy (years)",
-                            value: $viewModel.config.lifeExpectancySpouse,
+                            title: "Female Life Expectancy (years)",
+                            value: $viewModel.config.lifeExpectancyFemale,
                             defaultValue: 79,
                             keyboardType: .numberPad
                         )

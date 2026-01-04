@@ -14,6 +14,8 @@ struct ContentView: View {
     @State private var pendingTabChange: Int?
     @State private var showRecalculateAlert = false
     @State private var shouldAutoSwitchToIndividual = false
+    @State private var showDisclosure = false
+    @State private var hasShownDisclosureThisSession = false
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -31,21 +33,27 @@ struct ContentView: View {
             
             SystemResultsView(viewModel: viewModel)
                 .tabItem {
-                    Label("System Results", systemImage: "chart.bar")
+                    Label("Systemwide", systemImage: "chart.bar")
                 }
                 .tag(2)
+            
+            ComparisonView(viewModel: viewModel)
+                .tabItem {
+                    Label("Comparison", systemImage: "chart.bar.doc.horizontal")
+                }
+                .tag(3)
             
             SettingsView(viewModel: viewModel)
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
                 }
-                .tag(3)
+                .tag(4)
             
             SystemInformationView(viewModel: viewModel)
                 .tabItem {
                     Label("Info", systemImage: "info.circle")
                 }
-                .tag(4)
+                .tag(5)
         }
         .onChange(of: selectedTab) { newTab in
             // If switching away from Configuration tab (0) and there are unsaved changes
@@ -84,6 +92,16 @@ struct ContentView: View {
             }
         } message: {
             Text("You have unsaved configuration changes. Remember to press 'Calculate All' to update the results with your new settings.")
+        }
+        .sheet(isPresented: $showDisclosure) {
+            FinancialDisclosureView()
+        }
+        .onAppear {
+            // Show disclosure once per app launch session
+            if !hasShownDisclosureThisSession {
+                showDisclosure = true
+                hasShownDisclosureThisSession = true
+            }
         }
     }
 }

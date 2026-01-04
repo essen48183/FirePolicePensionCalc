@@ -9,6 +9,7 @@ import SwiftUI
 
 struct IndividualResultsView: View {
     @ObservedObject var viewModel: PensionCalculatorViewModel
+    @State private var showPensionOptionDescription = false
     
     var body: some View {
         NavigationView {
@@ -26,7 +27,7 @@ struct IndividualResultsView: View {
                         // Header Section
                         Section {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Individual Fictional Calc.")
+                                Text("Individual Calculation")
                                     .font(.title2)
                                     .bold()
                                 
@@ -34,7 +35,7 @@ struct IndividualResultsView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                 
-                                Text("(not part of the system-wide results)")
+                                Text("(These are NOT part of the system-wide results)  sytem wide results use the same assumptions you set that show this single, but the personnel file ages hire dates and spouse info.")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                     .padding(.top, 4)
@@ -47,7 +48,7 @@ struct IndividualResultsView: View {
                         Section {
                             ResultCard(title: "Initial Annual Pension", value: result.disbursement.initialAnnualPension, format: .currency)
                             
-                            Text("This is \(String(format: "%.1f", calculateRetireePercentOfOption1(result: result)))% of Option 1 annual value.  Final Annual Pension dollar amount won't reduce (may increase with COLA) but will have the reduced today's value buying power of \(formatCurrency(result.disbursement.finalAnnualPension)) at life expectancy date)")
+                            Text("This is \(String(format: "%.1f", calculateRetireePercentOfOption1(result: result)))% of Option 1 annual value. Final Annual Pension dollar amount won't reduce (may increase with COLA).")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
@@ -65,29 +66,45 @@ struct IndividualResultsView: View {
                         .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
                         
                         // Survivor Benefits Section
-                        if result.disbursement.yearsReceivingSpousePension > 0 {
+                        // Show for Options 2, 3, and 4 (always show for 3 and 4, even if years is 0)
+                        if result.disbursement.yearsReceivingSpousePension > 0 || 
+                           (viewModel.config.pensionOption == .option3 || viewModel.config.pensionOption == .option4) {
                             Section {
                                 ResultCard(
-                                    title: "Survivor's Initial Annual Pension",
+                                    title: viewModel.config.pensionOption == .option2 ? "Designated Beneficiary's Initial Annual Pension" : "Survivor's Initial Annual Pension",
                                     value: calculateSurvivorPercentOfInitial(result: result),
                                     format: .percent
                                 )
                                 
-                                if viewModel.config.pensionOption == .option3 {
-                                    Text("This survivor receives \(String(format: "%.1f", calculateSurvivorPercentOfInitial(result: result)))% for \(result.disbursement.yearsReceivingSpousePension) years of the initial annual pension (estimated dollar amount of \(formatCurrency(result.disbursement.spouseInitialAnnualPension)), which includes any COLA increases from the \(result.disbursement.yearsReceivingPension) years the retiree and survivor received the pension). The dollar amount decreases to the option level and the buying power decreases with inflation each year even though the dollar amount doesn't. On the day survivorship starts (after \(result.disbursement.yearsReceivingPension) years of the retiree receiving the pension), the dollar amount paid is \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) which will have an approximate today's-dollar-value buying power of \(formatCurrency(result.disbursement.spouseInitialBuyingPower)), and by the final life expectancy year, the final buying power in today's dollars will be closer to \(formatCurrency(result.disbursement.spouseFinalAnnualPension)).")
+                                if viewModel.config.pensionOption == .option2 {
+                                    Text("This designated beneficiary receives 100% of the pension amount the retiree was receiving at death (the same dollar amount: \(formatCurrency(result.disbursement.spouseInitialAnnualPension))) for a maximum of \(result.disbursement.yearsReceivingSpousePension) years. Even though Option 2 has a lower initial pension than Option 1, the designated beneficiary receives the same dollar amount the retiree was receiving, but only for a maximum of \(result.disbursement.yearsReceivingSpousePension) years.")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                } else if viewModel.config.pensionOption == .option3 {
+                                    if result.disbursement.yearsReceivingSpousePension > 0 {
+                                        Text("This survivor receives \(String(format: "%.1f", calculateSurvivorPercentOfInitial(result: result)))% of the initial annual pension (estimated dollar amount of \(formatCurrency(result.disbursement.spouseInitialAnnualPension)), which includes any COLA increases from the \(result.disbursement.yearsReceivingPension) years the retiree received the pension). Once the survivor pension begins, it is paid for the rest of the survivor's life. The number of years expected (\(result.disbursement.yearsReceivingSpousePension) years) is an estimate based on life expectancy—the actual duration depends on how long the survivor lives. On the day survivorship starts (after \(result.disbursement.yearsReceivingPension) years of the retiree receiving the pension), the dollar amount paid is \(formatCurrency(result.disbursement.spouseInitialAnnualPension)).")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                    } else {
+                                        Text("If this survivor outlives the retiree, they would receive \(String(format: "%.1f", calculateSurvivorPercentOfInitial(result: result)))% of the initial annual pension (estimated dollar amount of \(formatCurrency(result.disbursement.spouseInitialAnnualPension)), which includes any COLA increases from the \(result.disbursement.yearsReceivingPension) years the retiree received the pension). Once the survivor pension begins, it is paid for the rest of the survivor's life. Life expectancy suggests the survivor may die first, but if they outlive the retiree, the pension would continue for their lifetime.")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                    }
                                 } else if viewModel.config.pensionOption == .option4 {
-                                    Text("This survivor receives \(String(format: "%.1f", calculateSurvivorPercentOfInitial(result: result)))% of the initial annual pension at retirement for \(result.disbursement.yearsReceivingSpousePension) years. The dollar amount is \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) (66.67% of the initial annual pension), which will have today's value buying power on the day survivorship starts (after \(result.disbursement.yearsReceivingPension) years of the retiree receiving the pension) of \(formatCurrency(result.disbursement.spouseInitialBuyingPower)), and final life expectancy year buying power of \(formatCurrency(result.disbursement.spouseFinalAnnualPension))")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                                } else {
-                                    Text("This survivor receives \(String(format: "%.1f", calculateSurvivorPercentOfInitial(result: result)))% of the initial annual pension for \(result.disbursement.yearsReceivingSpousePension) years, which will have today's value buying power on the day it starts of \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) and final life expectancy year buying power of \(formatCurrency(result.disbursement.spouseFinalAnnualPension))")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                    if result.disbursement.yearsReceivingSpousePension > 0 {
+                                        Text("This survivor receives \(String(format: "%.1f", calculateSurvivorPercentOfInitial(result: result)))% of the initial annual pension at retirement. Once the survivor pension begins, it is paid for the rest of the survivor's life. The number of years expected (\(result.disbursement.yearsReceivingSpousePension)) is an estimate based on life expectancy—the actual duration depends on how long the survivor lives. The dollar amount is \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) (66.67% of the initial annual pension) on the day survivorship starts (after \(result.disbursement.yearsReceivingPension) years of the retiree receiving the pension).")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                    } else {
+                                        Text("If this survivor outlives the retiree, they would receive \(String(format: "%.1f", calculateSurvivorPercentOfInitial(result: result)))% of the initial annual pension at retirement. Once the survivor pension begins, it is paid for the rest of the survivor's life. Life expectancy suggests the survivor may die first, but if they outlive the retiree, the pension would continue for their lifetime. The dollar amount is \(formatCurrency(result.disbursement.spouseInitialAnnualPension)) (66.67% of the initial annual pension).")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                    }
                                 }
                             }
                             .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
@@ -101,23 +118,49 @@ struct IndividualResultsView: View {
                         .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
                         
                         // Retirement Option Details Section
-                        Section(header: Text("Retirement Option Details").font(.title2).bold()) {
+                        Section(header: HStack {
+                            Text("Retirement Option Details")
+                                .font(.title2)
+                                .bold()
+                            Spacer()
+                            Button(action: {
+                                showPensionOptionDescription = true
+                            }) {
+                                Image(systemName: "questionmark.circle")
+                                    .foregroundColor(.blue)
+                                    .font(.title3)
+                            }
+                        }) {
                             Text("Retiree receives \(String(format: "%.1f", calculateRetireePercentOfOption1(result: result)))% of Option 1 annual value for \(result.disbursement.yearsReceivingPension) years")
                             
-                            if result.disbursement.yearsReceivingSpousePension > 0 {
-                                Text("Survivor receives \(String(format: "%.1f", calculateSurvivorPercentOfOption1(result: result)))% of Option 1 annual value for \(result.disbursement.yearsReceivingSpousePension) years")
+                            if viewModel.config.pensionOption == .option2 {
+                                if result.disbursement.yearsReceivingSpousePension > 0 {
+                                    Text("Designated beneficiary receives \(String(format: "%.1f", calculateSurvivorPercentOfOption1(result: result)))% of Option 1 annual value for a maximum of \(result.disbursement.yearsReceivingSpousePension) years")
+                                }
+                            } else if viewModel.config.pensionOption == .option3 || viewModel.config.pensionOption == .option4 {
+                                if result.disbursement.yearsReceivingSpousePension > 0 {
+                                    Text("Survivor receives \(String(format: "%.1f", calculateSurvivorPercentOfOption1(result: result)))% of Option 1 annual value for the rest of their life (estimated  \(result.disbursement.yearsReceivingSpousePension) years based on life expectancy)")
+                                } else {
+                                    // Life expectancy suggests survivor dies first, but show what they would get if they outlive retiree
+                                    Text("Survivor would receive \(String(format: "%.1f", calculateSurvivorPercentOfOption1(result: result)))% of Option 1 annual value for the rest of their life if they outlive the retiree (life expectancy suggests they may pass away first, nonetheless the pension would continue for their lifetime if they did outsurvive)")
+                                }
                             }
                         }
                         
                         // Configuration Section
                         Section(header: Text("Configuration Used").font(.title2).bold()) {
                             Text("Hire Age: \(calculateHireAge()) (Year Hired: \(formatYear(viewModel.config.fictionalHiredYear)) - Year Born: \(formatYear(viewModel.config.fictionalBirthYear)))")
-                            if viewModel.config.earlyRetirementAuthorized {
-                                Text("Retire Age: \(calculateRetireAge()) (Note: Pension payments may start at minimum service years age (\(viewModel.config.minAgeForYearsService)) depending on system)")
-                            } else {
-                                Text("Retire Age: \(calculateRetireAge())")
-                            }
+                            Text("Retire Age: \(calculateRetireAge())")
                             Text("Years of Work: \(viewModel.config.fictionalYearsOfWork)")
+                            Text("Retirement Eligibility:")
+                                .font(.headline)
+                                .padding(.top, 4)
+                            Text("• Age-triggered: \(viewModel.config.retirementAge) years old")
+                            Text("• Years of service: \(viewModel.config.careerYearsService) years of service")
+                            Text("• Minimum age for years of service: \(viewModel.config.minAgeForYearsService) years old")
+                            if viewModel.config.earlyRetirementAuthorized {
+                                Text("• Early retirement authorized")
+                            }
                             if viewModel.config.multiplierBasedOnFAC {
                                 Text("FAC Wage: \(formatCurrency(viewModel.config.facWage))")
                             } else {
@@ -142,6 +185,9 @@ struct IndividualResultsView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .navigationViewStyle(StackNavigationViewStyle())
+        .sheet(isPresented: $showPensionOptionDescription) {
+            PensionOptionDescriptionView()
+        }
     }
     
     private func formatCurrency(_ value: Double) -> String {

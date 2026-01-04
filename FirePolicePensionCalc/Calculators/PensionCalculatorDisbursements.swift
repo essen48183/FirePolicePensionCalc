@@ -9,9 +9,6 @@ import Foundation
 
 class PensionCalculatorDisbursements {
     
-    private static let LIFE_EXPECTANCY = 73 // average life expectancy of male
-    private static let LIFE_EXPECTANCY_SPOUSE = LIFE_EXPECTANCY + 6 // average additional life expectancy of a female spouse
-    
     struct DisbursementResult {
         let totalPayout: Double
         let initialAnnualPension: Double
@@ -37,6 +34,10 @@ class PensionCalculatorDisbursements {
         inflateRate: Double, // as percentage
         retirementAge: Int,
         totalYearsService: Int,
+        employeeSex: Sex,
+        spouseSex: Sex?,
+        lifeExpectancyMale: Int,
+        lifeExpectancyFemale: Int,
         lifeExpDiff: Int,
         spouseAgeDiff: Int,
         currentAge: Int,
@@ -48,29 +49,33 @@ class PensionCalculatorDisbursements {
         let colaPerc = colaPercent / 100.0
         let inflate = inflateRate / 100.0
         
-        // Calculate years receiving pension
-        var yearsReceivingPension = LIFE_EXPECTANCY + lifeExpDiff - retirementAge
-        if yearsReceivingPension < 0 {
-            yearsReceivingPension = 0
-        }
-        // Calculate spouse pension years based on option
-        var yearsReceivingSpousePension: Int
-        switch pensionOption {
-        case .option1:
-            yearsReceivingSpousePension = 0 // No survivor benefit
-        case .option2:
-            yearsReceivingSpousePension = 10 // Fixed 10-year survivor
-        case .option3, .option4:
-            // Default actuarial calculation
-            yearsReceivingSpousePension = LIFE_EXPECTANCY_SPOUSE - LIFE_EXPECTANCY - spouseAgeDiff
-            if yearsReceivingSpousePension < 0 {
-                yearsReceivingSpousePension = 0
-            }
-        }
+        // Calculate years receiving pension using PensionMathCalculations
+        let yearsReceivingPension = PensionMathCalculations.calculateYearsReceivingPension(
+            retirementAge: retirementAge,
+            employeeSex: employeeSex,
+            lifeExpectancyMale: lifeExpectancyMale,
+            lifeExpectancyFemale: lifeExpectancyFemale,
+            lifeExpDiff: lifeExpDiff
+        )
         
-        // Calculate Option 1 (maximum) pension amount
+        // Calculate spouse pension years based on option using PensionMathCalculations
+        let yearsReceivingSpousePension = PensionMathCalculations.calculateYearsReceivingSpousePension(
+            pensionOption: pensionOption,
+            employeeSex: employeeSex,
+            spouseSex: spouseSex,
+            spouseAgeDiff: spouseAgeDiff,
+            lifeExpectancyMale: lifeExpectancyMale,
+            lifeExpectancyFemale: lifeExpectancyFemale,
+            lifeExpDiff: lifeExpDiff
+        )
+        
+        // Calculate Option 1 (maximum) pension amount using PensionMathCalculations
         let earningsBasedOn = useFacWage ? facWage : baseWage
-        let option1Pension = earningsBasedOn * annualMulti * Double(totalYearsService)
+        let option1Pension = PensionMathCalculations.calculateInitialAnnualPension(
+            earnings: earningsBasedOn,
+            multiplier: annualMultiplier,
+            yearsOfService: totalYearsService
+        )
         
         // Calculate spouse age
         let spouseAge = retirementAge + spouseAgeDiff
@@ -156,20 +161,22 @@ class PensionCalculatorDisbursements {
         // For other options, we calculate the total to match Option 1
         if yearsReceivingPension > 0 {
             for year in 1...yearsReceivingPension {
-                // Apply COLA if it's a COLA year
+                // Apply COLA if it's a COLA year using PensionMathCalculations
                 if numberColas > 0 && year % colaSpacing == 0 && colaCounter < numberColas {
                     colaCounter += 1
-                    if isColaCompounding {
-                        // Compounding: multiply by (1 + colaPercent)
-                        currentPension += currentPension * colaPerc
-                    } else {
-                        // Non-compounding: add fixed dollar amount
-                        currentPension += straightCola
-                    }
+                    currentPension = PensionMathCalculations.applyCOLA(
+                        currentPension: currentPension,
+                        colaPercent: colaPerc,
+                        isCompounding: isColaCompounding,
+                        straightColaAmount: straightCola
+                    )
                 }
                 
-                // Apply inflation (reduces buying power)
-                currentPension -= currentPension * inflate
+                // Apply inflation (reduces buying power) using PensionMathCalculations
+                currentPension = PensionMathCalculations.applyInflation(
+                    currentAmount: currentPension,
+                    inflationRate: inflate
+                )
                 
                 // Add to total payout
                 totalPayout += currentPension
@@ -200,17 +207,18 @@ class PensionCalculatorDisbursements {
             var retireeColaCounter = 0
             let retireeStraightCola = initialAnnualPension * colaPerc
             
-            for year in 1...yearsReceivingPension {
-                // Apply COLA if it's a COLA year (increases dollar amount, no inflation adjustment)
-                if numberColas > 0 && year % colaSpacing == 0 && retireeColaCounter < numberColas {
-                    retireeColaCounter += 1
-                    if isColaCompounding {
-                        spouseDollarAmountAfterColas += spouseDollarAmountAfterColas * colaPerc
-                    } else {
-                        spouseDollarAmountAfterColas += retireeStraightCola
+                for year in 1...yearsReceivingPension {
+                    // Apply COLA if it's a COLA year (increases dollar amount, no inflation adjustment)
+                    if numberColas > 0 && year % colaSpacing == 0 && retireeColaCounter < numberColas {
+                        retireeColaCounter += 1
+                        spouseDollarAmountAfterColas = PensionMathCalculations.applyCOLA(
+                            currentPension: spouseDollarAmountAfterColas,
+                            colaPercent: colaPerc,
+                            isCompounding: isColaCompounding,
+                            straightColaAmount: retireeStraightCola
+                        )
                     }
                 }
-            }
             
             annualSpousePension = spouseDollarAmountAfterColas // 100% of initial annual pension plus COLAs (dollar amount)
             spousePension = annualSpousePension
@@ -231,18 +239,24 @@ class PensionCalculatorDisbursements {
         var spouseInitialBuyingPower: Double
         if pensionOption == .option3 {
             // Dollar amount after COLAs (already calculated above as spouseInitialPension)
-            // Now calculate buying power by applying inflation over retiree's years
+            // Now calculate buying power by applying inflation over retiree's years using PensionMathCalculations
             var buyingPower = spouseInitialPension // Start with dollar amount after COLAs
             for _ in 1...yearsReceivingPension {
-                buyingPower -= buyingPower * inflate
+                buyingPower = PensionMathCalculations.applyInflation(
+                    currentAmount: buyingPower,
+                    inflationRate: inflate
+                )
             }
             spouseInitialBuyingPower = buyingPower
         } else if pensionOption == .option4 {
             // Dollar amount is 66.67% of initial pension (fixed)
-            // Calculate buying power by applying inflation over retiree's years
+            // Calculate buying power by applying inflation over retiree's years using PensionMathCalculations
             var buyingPower = spouseInitialPension // Start with dollar amount (66.67% of initial)
             for _ in 1...yearsReceivingPension {
-                buyingPower -= buyingPower * inflate
+                buyingPower = PensionMathCalculations.applyInflation(
+                    currentAmount: buyingPower,
+                    inflationRate: inflate
+                )
             }
             spouseInitialBuyingPower = buyingPower
         } else {
@@ -282,10 +296,13 @@ class PensionCalculatorDisbursements {
                 }
                 
                 // Calculate final buying power: initial buying power reduced by inflation over survivor's years
-                // This is independent of COLAs - just inflation reduction from start to end
+                // This is independent of COLAs - just inflation reduction from start to end using PensionMathCalculations
                 var finalBuyingPower = spouseInitialBuyingPower
                 for _ in 1...yearsReceivingSpousePension {
-                    finalBuyingPower -= finalBuyingPower * inflate
+                    finalBuyingPower = PensionMathCalculations.applyInflation(
+                        currentAmount: finalBuyingPower,
+                        inflationRate: inflate
+                    )
                 }
                 
                 // Store final buying power for display
@@ -472,21 +489,25 @@ class PensionCalculatorDisbursements {
                 let retireeStraightCola = initialPension * colaPerc
                 
                 for year in 1...yearsReceivingPension {
-                    // Apply COLA if it's a COLA year (increases dollar amount, no inflation adjustment)
+                    // Apply COLA if it's a COLA year (increases dollar amount, no inflation adjustment) using PensionMathCalculations
                     if numberColas > 0 && year % colaSpacing == 0 && retireeColaCounter < numberColas {
                         retireeColaCounter += 1
-                        if isColaCompounding {
-                            survivorDollarAmount += survivorDollarAmount * colaPerc
-                        } else {
-                            survivorDollarAmount += retireeStraightCola
-                        }
+                        survivorDollarAmount = PensionMathCalculations.applyCOLA(
+                            currentPension: survivorDollarAmount,
+                            colaPercent: colaPerc,
+                            isCompounding: isColaCompounding,
+                            straightColaAmount: retireeStraightCola
+                        )
                     }
                 }
                 
-                // Now calculate buying power by applying inflation over retiree's years
+                // Now calculate buying power by applying inflation over retiree's years using PensionMathCalculations
                 var survivorBuyingPower = survivorDollarAmount
                 for _ in 1...yearsReceivingPension {
-                    survivorBuyingPower -= survivorBuyingPower * inflate
+                    survivorBuyingPower = PensionMathCalculations.applyInflation(
+                        currentAmount: survivorBuyingPower,
+                        inflationRate: inflate
+                    )
                 }
                 
                 // Track additional COLAs during survivor years
@@ -494,20 +515,24 @@ class PensionCalculatorDisbursements {
                 let survivorStraightCola = survivorDollarAmount * colaPerc
                 
                 for year in 1...actualSurvivorYears {
-                    // Apply COLA if it's a COLA year (increases dollar amount)
+                    // Apply COLA if it's a COLA year (increases dollar amount) using PensionMathCalculations
                     if numberColas > 0 && year % colaSpacing == 0 && survivorColaCounter < numberColas {
                         survivorColaCounter += 1
-                        if isColaCompounding {
-                            survivorDollarAmount += survivorDollarAmount * colaPerc
-                        } else {
-                            survivorDollarAmount += survivorStraightCola
-                        }
+                        survivorDollarAmount = PensionMathCalculations.applyCOLA(
+                            currentPension: survivorDollarAmount,
+                            colaPercent: colaPerc,
+                            isCompounding: isColaCompounding,
+                            straightColaAmount: survivorStraightCola
+                        )
                         // Buying power also increases with COLA
                         survivorBuyingPower = survivorDollarAmount
                     }
                     
-                    // Apply inflation (reduces buying power, but dollar amount stays the same)
-                    survivorBuyingPower -= survivorBuyingPower * inflate
+                    // Apply inflation (reduces buying power, but dollar amount stays the same) using PensionMathCalculations
+                    survivorBuyingPower = PensionMathCalculations.applyInflation(
+                        currentAmount: survivorBuyingPower,
+                        inflationRate: inflate
+                    )
                     
                     // Use buying power for total benefit calculation (actuarial equivalence)
                     totalBenefit += survivorBuyingPower
@@ -525,8 +550,11 @@ class PensionCalculatorDisbursements {
                 }
                 
                 for year in 1...actualSurvivorYears {
-                    // Apply inflation
-                    survivorPension -= survivorPension * inflate
+                    // Apply inflation using PensionMathCalculations
+                    survivorPension = PensionMathCalculations.applyInflation(
+                        currentAmount: survivorPension,
+                        inflationRate: inflate
+                    )
                     totalBenefit += survivorPension
                 }
             }

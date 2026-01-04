@@ -13,13 +13,17 @@ struct EditableEmployee: Identifiable, Equatable {
     var hiredYear: Int
     var dateOfBirth: Int
     var spouseDateOfBirth: Int
+    var sex: Sex
+    var spouseSex: Sex?
     
     static func == (lhs: EditableEmployee, rhs: EditableEmployee) -> Bool {
         return lhs.id == rhs.id &&
                lhs.name == rhs.name &&
                lhs.hiredYear == rhs.hiredYear &&
                lhs.dateOfBirth == rhs.dateOfBirth &&
-               lhs.spouseDateOfBirth == rhs.spouseDateOfBirth
+               lhs.spouseDateOfBirth == rhs.spouseDateOfBirth &&
+               lhs.sex == rhs.sex &&
+               lhs.spouseSex == rhs.spouseSex
     }
     
     init(from employee: Employee) {
@@ -28,14 +32,20 @@ struct EditableEmployee: Identifiable, Equatable {
         self.hiredYear = employee.hiredYear
         self.dateOfBirth = employee.dateOfBirth
         self.spouseDateOfBirth = employee.spouseDateOfBirth
+        self.sex = employee.sex
+        self.spouseSex = employee.spouseSex
     }
     
-    init(id: Int, name: String, hiredYear: Int, dateOfBirth: Int, spouseDateOfBirth: Int) {
+    init(id: Int, name: String, hiredYear: Int, dateOfBirth: Int, spouseDateOfBirth: Int, sex: Sex = .male, spouseSex: Sex? = nil) {
         self.id = id
         self.name = name
         self.hiredYear = hiredYear
         self.dateOfBirth = dateOfBirth
         self.spouseDateOfBirth = spouseDateOfBirth
+        self.sex = sex
+        // If spouseDateOfBirth is 0 (no spouse), spouseSex should be nil
+        // Otherwise default to female if not specified
+        self.spouseSex = spouseDateOfBirth > 0 ? (spouseSex ?? .female) : nil
     }
     
     func toEmployee() -> Employee {
@@ -44,7 +54,9 @@ struct EditableEmployee: Identifiable, Equatable {
             name: name,
             hiredYear: hiredYear,
             dateOfBirth: dateOfBirth,
-            spouseDateOfBirth: spouseDateOfBirth
+            spouseDateOfBirth: spouseDateOfBirth,
+            sex: sex,
+            spouseSex: spouseSex
         )
     }
 }
@@ -162,7 +174,9 @@ struct EmployeeEditView: View {
             name: "",
             hiredYear: Calendar.current.component(.year, from: Date()),
             dateOfBirth: 1990,
-            spouseDateOfBirth: 0
+            spouseDateOfBirth: 0,
+            sex: .male,
+            spouseSex: nil
         )
         editedEmployees.insert(newEmployee, at: 0)
     }
@@ -185,10 +199,12 @@ struct EmployeeEditView: View {
         
         for editedEmployee in editedEmployees {
             if let originalEmployee = originalMap[editedEmployee.id] {
-                if editedEmployee.name != originalEmployee.name ||
-                   editedEmployee.hiredYear != originalEmployee.hiredYear ||
-                   editedEmployee.dateOfBirth != originalEmployee.dateOfBirth ||
-                   editedEmployee.spouseDateOfBirth != originalEmployee.spouseDateOfBirth {
+            if editedEmployee.name != originalEmployee.name ||
+               editedEmployee.hiredYear != originalEmployee.hiredYear ||
+               editedEmployee.dateOfBirth != originalEmployee.dateOfBirth ||
+               editedEmployee.spouseDateOfBirth != originalEmployee.spouseDateOfBirth ||
+               editedEmployee.sex != originalEmployee.sex ||
+               editedEmployee.spouseSex != originalEmployee.spouseSex {
                     return true
                 }
             } else {

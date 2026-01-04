@@ -50,8 +50,8 @@ struct PensionConfiguration: Codable {
     var employeeContributionPercent: Double = 5.0 // percentage of base wage
     
     // Life expectancy
-    var lifeExpectancy: Int = 73 // system-wide worker life expectancy
-    var lifeExpectancySpouse: Int = 79 // system-wide spouse life expectancy
+    var lifeExpectancyMale: Int = 73 // system-wide male life expectancy
+    var lifeExpectancyFemale: Int = 79 // system-wide female life expectancy
     var deltaExtraLife: Int = 0 // additional years beyond life expectancy
     
     // Fictional new hire (for individual calculations)
@@ -63,7 +63,9 @@ struct PensionConfiguration: Codable {
     // Real employee data for fictional new hire
     var fictionalHiredYear: Int = 2025
     var fictionalBirthYear: Int = 2000
+    var fictionalEmployeeSex: Sex = .male // M or F
     var fictionalSpouseBirthYear: Int = 1998
+    var fictionalSpouseSex: Sex = .female // M or F, defaults to F
     var fictionalYearsOfWork: Int = 25 // chosen number of years of work
     var earlyRetirementAuthorized: Bool = false // if checked, bypasses early retirement validation
     

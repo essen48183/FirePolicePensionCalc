@@ -168,11 +168,16 @@ struct FACCalculatorView: View {
     }
     
     private func calculateFAC() {
-        let totalYear1 = baseWageYear1 + overtimeYear1 + rollInsYear1
-        let totalYear2 = baseWageYear2 + overtimeYear2
-        let totalYear3 = baseWageYear3 + overtimeYear3
-        
-        calculatedFAC = (totalYear1 + totalYear2 + totalYear3) / 3.0
+        // Use PensionMathCalculations for FAC calculation
+        calculatedFAC = PensionMathCalculations.calculateFAC(
+            baseWageYear1: baseWageYear1,
+            overtimeYear1: overtimeYear1,
+            rollInsYear1: rollInsYear1,
+            baseWageYear2: baseWageYear2,
+            overtimeYear2: overtimeYear2,
+            baseWageYear3: baseWageYear3,
+            overtimeYear3: overtimeYear3
+        )
     }
     
     private func saveAndReturn() {

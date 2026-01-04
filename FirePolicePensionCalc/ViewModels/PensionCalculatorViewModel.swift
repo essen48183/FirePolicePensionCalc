@@ -140,15 +140,17 @@ class PensionCalculatorViewModel: ObservableObject {
                a.systemWideBaseWage == b.systemWideBaseWage &&
                a.systemWideFacWage == b.systemWideFacWage &&
                a.systemWideAverageWage == b.systemWideAverageWage &&
-               a.lifeExpectancy == b.lifeExpectancy &&
-               a.lifeExpectancySpouse == b.lifeExpectancySpouse &&
+               a.lifeExpectancyMale == b.lifeExpectancyMale &&
+               a.lifeExpectancyFemale == b.lifeExpectancyFemale &&
                a.deltaExtraLife == b.deltaExtraLife &&
                a.fictionalNewHireAge == b.fictionalNewHireAge &&
                a.fictionalSpouseAgeDiff == b.fictionalSpouseAgeDiff &&
                a.spouseReductionPercent == b.spouseReductionPercent &&
                a.fictionalHiredYear == b.fictionalHiredYear &&
                a.fictionalBirthYear == b.fictionalBirthYear &&
+               a.fictionalEmployeeSex == b.fictionalEmployeeSex &&
                a.fictionalSpouseBirthYear == b.fictionalSpouseBirthYear &&
+               a.fictionalSpouseSex == b.fictionalSpouseSex &&
                a.fictionalYearsOfWork == b.fictionalYearsOfWork &&
                a.earlyRetirementAuthorized == b.earlyRetirementAuthorized &&
                a.facBaseWageYear1 == b.facBaseWageYear1 &&

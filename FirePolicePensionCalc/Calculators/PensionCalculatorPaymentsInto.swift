@@ -49,37 +49,22 @@ class PensionCalculatorPaymentsInto {
         
         // totalEmployeeContribution is the nominal sum of contributions over career
         // But we need the future value of those contributions at retirement (they earn interest over time)
-        // Calculate annual employee contribution and its future value at retirement
-        let annualEmployeeContribution = totalEmployeeContribution / Double(yearsInvesting)
-        let employeeContributionsFV = futureValueOfAnnuity(
-            annualPayment: annualEmployeeContribution,
-            interestRate: expectedInterestRate,
-            years: yearsInvesting
-        )
-        
-        // Calculate present value needed
-        // Amount needed at retirement (nominal) minus employee contributions FV (nominal) minus initial balance
-        // This gives us what the city needs to provide at retirement (nominal)
-        // Then discount back to today using NOMINAL interest rate (not real rate)
-        // The real rate would be used if we were working in today's dollars, but sumDesiredAtRetirement
-        // is already in retirement-date dollars (nominal), so we use nominal rate to discount
-        let futureValueNeeded = sumDesiredAtRetirement - initialBalance - employeeContributionsFV
-        let presentValueOfRetirementInput = presentValue(
-            futureValue: futureValueNeeded,
-            interestRate: expectedInterestRate, // Use nominal rate, not real rate
-            years: yearsInvesting
+        // Use PensionMathCalculations for city contribution calculation
+        let presentValueOfRetirementInput = PensionMathCalculations.calculateCityContributionPresentValue(
+            amountNeededAtRetirement: sumDesiredAtRetirement,
+            initialBalance: initialBalance,
+            totalEmployeeContribution: totalEmployeeContribution,
+            expectedInterestRate: expectedInterestRate,
+            yearsInvesting: yearsInvesting
         )
         
         if verbose {
-            // Calculate annual payment using annuity formula: PMT = PV * (r / (1 - (1 + r)^-n))
-            let annualPayment: Double
-            if yearsInvesting > 0 && interestRate > 0 {
-                let discountFactor = pow(1 + interestRate, Double(-yearsInvesting))
-                let annuityFactor = interestRate / (1 - discountFactor)
-                annualPayment = presentValueOfRetirementInput * annuityFactor
-            } else {
-                annualPayment = presentValueOfRetirementInput / Double(yearsInvesting)
-            }
+            // Calculate annual payment using PensionMathCalculations
+            let annualPayment = PensionMathCalculations.calculateAnnualCityContribution(
+                presentValue: presentValueOfRetirementInput,
+                interestRate: expectedInterestRate,
+                yearsInvesting: yearsInvesting
+            )
             print("Annual input to retirement system required to fund (per year) for this employee assuming \(String(format: "%.2f", expectedInterestRate))% expected interest rate and \(String(format: "%.2f", expectedInflationRate))% expected inflation: $\(Int(annualPayment)).")
         }
         
@@ -87,45 +72,35 @@ class PensionCalculatorPaymentsInto {
     }
     
     /// Calculate present value from future value
-    private static func presentValue(futureValue: Double, interestRate: Double, years: Int) -> Double {
-        // PV = FV / (1 + r)^n
-        // interestRate is already in percentage form (e.g., 5.0 for 5%)
-        return futureValue / pow(1 + (interestRate / 100.0), Double(years))
+    /// Uses PensionMathFormulas for the calculation
+    static func presentValue(futureValue: Double, interestRate: Double, years: Int) -> Double {
+        return PensionMathFormulas.presentValue(futureValue: futureValue, interestRate: interestRate, years: years)
     }
     
     /// Calculate future value from present value
+    /// Uses PensionMathFormulas for the calculation
     static func futureValue(presentValue: Double, interestRate: Double, years: Int) -> Double {
-        // FV = PV * (1 + r)^n
-        return presentValue * pow(1 + (interestRate / 100.0), Double(years))
+        return PensionMathFormulas.futureValue(presentValue: presentValue, interestRate: interestRate, years: years)
     }
     
     /// Calculate future value of an annuity (annual payments)
-    /// Formula: FV = PMT * (((1 + r)^n - 1) / r)
-    /// Where PMT is the annual payment, r is the interest rate, n is the number of years
+    /// Uses PensionMathFormulas for the calculation
     static func futureValueOfAnnuity(annualPayment: Double, interestRate: Double, years: Int) -> Double {
-        let r = interestRate / 100.0
-        if r == 0 {
-            return annualPayment * Double(years)
-        }
-        return annualPayment * ((pow(1 + r, Double(years)) - 1) / r)
+        return PensionMathFormulas.futureValueOfAnnuity(annualPayment: annualPayment, interestRate: interestRate, years: years)
     }
     
     /// Calculate amount needed at retirement to fund pension payments
     /// ACTUARIAL RULE: We need 100% of expected lifetime benefits at retirement time.
-    /// Once retired, we cannot expect investment returns to outpace inflation.
-    /// Therefore, we calculate the sum of all payments in nominal dollars (no discounting).
-    /// Formula: Amount Needed = PMT * n
-    /// Where PMT is the annual payment, n is the number of years
+    /// Uses PensionMathFormulas for the calculation
     static func presentValueOfAnnuityWithInflation(
         initialAnnualPayment: Double,
         interestRate: Double,
         inflationRate: Double,
         years: Int
     ) -> Double {
-        // ACTUARIAL RULE: During retirement, investment returns won't outpace inflation
-        // Therefore, we need the full sum of all payments at retirement (no discounting)
-        // This is a conservative assumption that ensures 100% funding
-        return initialAnnualPayment * Double(years)
+        // Note: interestRate and inflationRate parameters kept for API compatibility but not used
+        // The actuarial rule requires full sum with no discounting
+        return PensionMathFormulas.amountNeededAtRetirement(initialAnnualPayment: initialAnnualPayment, years: years)
     }
     
     /// Verify that employee and employer contributions with expected return rate are sufficient
@@ -153,52 +128,20 @@ class PensionCalculatorPaymentsInto {
         yearsRetired: Int
     ) -> (isSufficient: Bool, totalAvailableAtRetirement: Double, totalNeededAtRetirement: Double, shortfall: Double) {
         
-        let interestRate = expectedInterestRate / 100.0
-        let inflationRate = expectedInflationRate / 100.0
-        
-        // Calculate annual employee contribution
-        let annualEmployeeContribution = facWage * (employeeContributionPercent / 100.0)
-        
-        // Calculate future value of employee contributions (annuity)
-        let employeeContributionsFV = futureValueOfAnnuity(
-            annualPayment: annualEmployeeContribution,
-            interestRate: expectedInterestRate,
-            years: yearsInvesting
+        // Use PensionMathCalculations for verification
+        let annualEmployeeContribution = PensionMathCalculations.calculateAnnualEmployeeContribution(
+            baseWage: facWage,
+            contributionPercent: employeeContributionPercent
         )
         
-        // Calculate annual city contribution using annuity formula: PMT = PV * (r / (1 - (1 + r)^-n))
-        let annualCityContribution: Double
-        if yearsInvesting > 0 && interestRate > 0 {
-            let discountFactor = pow(1 + interestRate, Double(-yearsInvesting))
-            let annuityFactor = interestRate / (1 - discountFactor)
-            annualCityContribution = cityContributionPresentValue * annuityFactor
-        } else {
-            annualCityContribution = cityContributionPresentValue / Double(yearsInvesting)
-        }
-        
-        // Calculate future value of city contributions (annuity)
-        let cityContributionsFV = futureValueOfAnnuity(
-            annualPayment: annualCityContribution,
-            interestRate: expectedInterestRate,
-            years: yearsInvesting
+        return PensionMathCalculations.verifyContributionSufficiency(
+            initialAnnualPension: initialAnnualPension,
+            yearsRetired: yearsRetired,
+            annualEmployeeContribution: annualEmployeeContribution,
+            cityContributionPresentValue: cityContributionPresentValue,
+            expectedInterestRate: expectedInterestRate,
+            yearsInvesting: yearsInvesting
         )
-        
-        // Total available at retirement
-        let totalAvailableAtRetirement = employeeContributionsFV + cityContributionsFV
-        
-        // Calculate the amount needed at retirement
-        // ACTUARIAL RULE: 100% of expected lifetime benefits needed (no discounting during retirement)
-        let totalNeededAtRetirement = presentValueOfAnnuityWithInflation(
-            initialAnnualPayment: initialAnnualPension,
-            interestRate: expectedInterestRate, // Used during accumulation phase only
-            inflationRate: expectedInflationRate,
-            years: yearsRetired
-        )
-        
-        let shortfall = totalNeededAtRetirement - totalAvailableAtRetirement
-        let isSufficient = shortfall <= 0
-        
-        return (isSufficient, totalAvailableAtRetirement, totalNeededAtRetirement, shortfall)
     }
 }
 

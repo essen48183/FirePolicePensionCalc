@@ -84,7 +84,11 @@ struct SystemResultsView: View {
                             }
                             Text("Multiplier: \(formatPercent(viewModel.config.multiplier))%")
                             Text("COLA: \(viewModel.config.colaNumber) adjustments, \(formatPercent(viewModel.config.colaPercent))% every \(viewModel.config.colaSpacing) years")
-                            Text("Retirement Age: \(viewModel.config.retirementAge) or \(viewModel.config.careerYearsService) years service")
+                            Text("Retirement Eligibility:")
+                                .font(.headline)
+                            Text("• Age-triggered: \(viewModel.config.retirementAge) years old")
+                            Text("• Years of service: \(viewModel.config.careerYearsService) years of service")
+                            Text("• Minimum age for years of service: \(viewModel.config.minAgeForYearsService) years old")
                         }
                         
                         // Employee Details Section
