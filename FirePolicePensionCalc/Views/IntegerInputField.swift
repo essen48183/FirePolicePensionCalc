@@ -12,6 +12,15 @@ struct IntegerInputField: View {
     @Binding var value: Int
     let defaultValue: Int
     let keyboardType: UIKeyboardType
+    let minimumValue: Int?
+    
+    init(title: String, value: Binding<Int>, defaultValue: Int, keyboardType: UIKeyboardType, minimumValue: Int? = nil) {
+        self.title = title
+        self._value = value
+        self.defaultValue = defaultValue
+        self.keyboardType = keyboardType
+        self.minimumValue = minimumValue
+    }
     
     @State private var showInputSheet = false
     @State private var inputText = ""
@@ -37,6 +46,7 @@ struct IntegerInputField: View {
                 defaultValue: defaultValue,
                 inputText: $inputText,
                 keyboardType: keyboardType,
+                minimumValue: minimumValue,
                 onSave: { newValue in
                     value = newValue
                 }
@@ -51,6 +61,7 @@ struct IntegerInputSheet: View {
     let defaultValue: Int
     @Binding var inputText: String
     let keyboardType: UIKeyboardType
+    let minimumValue: Int?
     let onSave: (Int) -> Void
     
     @Environment(\.dismiss) var dismiss
@@ -89,9 +100,17 @@ struct IntegerInputSheet: View {
                 }
                 
                 Section {
+                    if let minValue = minimumValue, let parsedValue = parseInput(), parsedValue < minValue {
+                        Text("Value must be at least \(minValue)")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                    
                     Button(action: {
                         if let newValue = parseInput() {
-                            onSave(newValue)
+                            // Enforce minimum value if specified
+                            let finalValue = minimumValue.map { max(newValue, $0) } ?? newValue
+                            onSave(finalValue)
                             dismiss()
                         }
                     }) {
@@ -103,7 +122,7 @@ struct IntegerInputSheet: View {
                         }
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(inputText.isEmpty)
+                    .disabled(inputText.isEmpty || (minimumValue != nil && (parseInput() ?? Int.min) < minimumValue!))
                     
                     Button(action: {
                         dismiss()

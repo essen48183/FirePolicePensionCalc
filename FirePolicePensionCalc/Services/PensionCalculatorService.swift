@@ -16,8 +16,10 @@ struct EmployeeCalculationResult: Identifiable {
     let employeeContributions: Double
     let yearsToRetire: Int
     let retirementAge: Int
+    let spouseInitialAnnualPension: Double
+    let yearsReceivingSpousePension: Int
     
-    init(employee: Employee, totalDisbursements: Double, initialAnnualPension: Double, cityContributions: Double, employeeContributions: Double, yearsToRetire: Int, retirementAge: Int) {
+    init(employee: Employee, totalDisbursements: Double, initialAnnualPension: Double, cityContributions: Double, employeeContributions: Double, yearsToRetire: Int, retirementAge: Int, spouseInitialAnnualPension: Double = 0, yearsReceivingSpousePension: Int = 0) {
         self.id = employee.id
         self.employee = employee
         self.totalDisbursements = totalDisbursements
@@ -26,6 +28,8 @@ struct EmployeeCalculationResult: Identifiable {
         self.employeeContributions = employeeContributions
         self.yearsToRetire = yearsToRetire
         self.retirementAge = retirementAge
+        self.spouseInitialAnnualPension = spouseInitialAnnualPension
+        self.yearsReceivingSpousePension = yearsReceivingSpousePension
     }
 }
 
@@ -68,6 +72,9 @@ class PensionCalculatorService {
             let employeeEarliestEligibleRetirementAge = (employee.hiredYear + yearsToRetire) - currentYear + employee.currentAge
             
             // Calculate disbursements using system-wide wages
+            // SYSTEM-WIDE RULE: Always use Option 1 (no survivor) for system-wide calculations
+            // Actuarial equivalence means all options have the same total lifetime benefit,
+            // so we fund based on Option 1's amount
             let disbursementResult = PensionCalculatorDisbursements.calculateDisbursements(
                 verbose: false,
                 baseWage: config.systemWideBaseWage,
@@ -88,7 +95,7 @@ class PensionCalculatorService {
                 lifeExpDiff: config.deltaExtraLife,
                 spouseAgeDiff: employee.spouseAgeDiff,
                 currentAge: employee.currentAge,
-                pensionOption: config.pensionOption
+                pensionOption: .option1  // Always Option 1 for system-wide
             )
             
             // Calculate employee contribution using PensionMathCalculations
@@ -98,13 +105,23 @@ class PensionCalculatorService {
                 yearsOfService: yearsToRetire
             )
             
-            // Calculate amount needed at retirement to fund the annuity using PensionMathFormulas
+            // Calculate amount needed at retirement to fund the annuity
             // ACTUARIAL RULE: We need 100% of expected lifetime benefits at retirement.
+            // SYSTEM-WIDE RULE: Always use Option 1 (no survivor) - only retiree's payments
+            // Calculate sum of all nominal payments (with COLA, without inflation)
+            // Only retiree's portion - no survivor benefits for system-wide calculations
             let employeeLifeExpectancy = employee.sex == .male ? config.lifeExpectancyMale : config.lifeExpectancyFemale
             let yearsRetired = employeeLifeExpectancy + config.deltaExtraLife - employeeEarliestEligibleRetirementAge
-            let amountNeededAtRetirement = PensionMathFormulas.amountNeededAtRetirement(
+            let colaPercent = config.colaPercent / 100.0
+            let amountNeededAtRetirement = PensionMathFormulas.amountNeededAtRetirementWithCOLA(
                 initialAnnualPayment: disbursementResult.initialAnnualPension,
-                years: yearsRetired
+                yearsRetired: yearsRetired,
+                spouseInitialAnnualPension: 0,  // No survivor for system-wide (Option 1)
+                yearsReceivingSpousePension: 0,  // No survivor for system-wide (Option 1)
+                colaPercent: colaPercent,
+                isColaCompounding: config.isColaCompounding,
+                numberColas: config.colaNumber,
+                colaSpacing: config.colaSpacing
             )
             
             // Calculate city contributions needed
@@ -133,7 +150,9 @@ class PensionCalculatorService {
                 cityContributions: cityContribution,
                 employeeContributions: employeeContribution,
                 yearsToRetire: yearsToRetire,
-                retirementAge: retirementAge
+                retirementAge: retirementAge,
+                spouseInitialAnnualPension: disbursementResult.spouseInitialAnnualPension,
+                yearsReceivingSpousePension: disbursementResult.yearsReceivingSpousePension
             ))
         }
         
@@ -178,11 +197,21 @@ class PensionCalculatorService {
             
             totalAvailableAtRetirement += employeeContributionsFV + cityContributionsFV
             
-            // Calculate amount needed at retirement using PensionMathFormulas
+            // Calculate amount needed at retirement
             // ACTUARIAL RULE: 100% of expected lifetime benefits needed (no discounting during retirement)
-            let neededAtRetirement = PensionMathFormulas.amountNeededAtRetirement(
+            // SYSTEM-WIDE RULE: Always use Option 1 (no survivor) - only retiree's payments
+            // Calculate sum of all nominal payments (with COLA, without inflation)
+            // Only retiree's portion - no survivor benefits for system-wide calculations
+            let colaPercent = config.colaPercent / 100.0
+            let neededAtRetirement = PensionMathFormulas.amountNeededAtRetirementWithCOLA(
                 initialAnnualPayment: employeeResult.initialAnnualPension,
-                years: yearsRetired
+                yearsRetired: yearsRetired,
+                spouseInitialAnnualPension: 0,  // No survivor for system-wide (Option 1)
+                yearsReceivingSpousePension: 0,   // No survivor for system-wide (Option 1)
+                colaPercent: colaPercent,
+                isColaCompounding: config.isColaCompounding,
+                numberColas: config.colaNumber,
+                colaSpacing: config.colaSpacing
             )
             
             totalNeededAtRetirement += neededAtRetirement
@@ -210,7 +239,9 @@ class PensionCalculatorService {
                 cityContributions: result.cityContributions * adjustmentFactor,
                 employeeContributions: result.employeeContributions,
                 yearsToRetire: result.yearsToRetire,
-                retirementAge: result.retirementAge
+                retirementAge: result.retirementAge,
+                spouseInitialAnnualPension: result.spouseInitialAnnualPension,
+                yearsReceivingSpousePension: result.yearsReceivingSpousePension
             )
         }
         
@@ -357,13 +388,22 @@ class PensionCalculatorService {
             yearsOfService: yearsToRetire
         )
         
-        // Calculate amount needed at retirement using PensionMathFormulas
+        // Calculate amount needed at retirement
         // ACTUARIAL RULE: 100% of expected lifetime benefits needed (no discounting during retirement)
+        // Calculate sum of all nominal payments (with COLA, without inflation)
+        // Includes both retiree and survivor benefits
         let employeeLifeExpectancy = config.fictionalEmployeeSex == .male ? config.lifeExpectancyMale : config.lifeExpectancyFemale
         let yearsRetired = employeeLifeExpectancy + config.deltaExtraLife - retirementAge
-        let amountNeededAtRetirement = PensionMathFormulas.amountNeededAtRetirement(
+        let colaPercent = config.colaPercent / 100.0
+        let amountNeededAtRetirement = PensionMathFormulas.amountNeededAtRetirementWithCOLA(
             initialAnnualPayment: disbursementResult.initialAnnualPension,
-            years: yearsRetired
+            yearsRetired: yearsRetired,
+            spouseInitialAnnualPension: disbursementResult.spouseInitialAnnualPension,
+            yearsReceivingSpousePension: disbursementResult.yearsReceivingSpousePension,
+            colaPercent: colaPercent,
+            isColaCompounding: config.isColaCompounding,
+            numberColas: config.colaNumber,
+            colaSpacing: config.colaSpacing
         )
         
         // Calculate city contribution

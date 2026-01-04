@@ -440,20 +440,24 @@ struct ComparisonRow: View {
             
             HStack(spacing: 20) {
                 VStack(alignment: .leading, spacing: 4) {
+                    Text("Saved Comparison")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(formatValue(comparison))
+                        .font(.body)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Newly Calculated")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Text(formatValue(current))
                         .font(.body)
                         .bold()
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Saved Current Comparison")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(formatValue(comparison))
-                        .font(.body)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
                 }
                 
                 Spacer()
@@ -466,6 +470,8 @@ struct ComparisonRow: View {
                         .font(.body)
                         .bold()
                         .foregroundColor(difference > 0 ? .green : (difference < 0 ? .red : .primary))
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
                     
                     Text("(\(formatPercentChange(percentChange)))")
                         .font(.caption)
@@ -537,18 +543,18 @@ struct AssumptionComparisonRow: View {
             
             HStack(spacing: 20) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Newly Calculated")
+                    Text("Saved Comparison")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text(current)
+                    Text(comparison)
                         .font(.body)
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Saved Current Comparison")
+                    Text("Newly Calculated")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text(comparison)
+                    Text(current)
                         .font(.body)
                 }
                 
@@ -583,6 +589,83 @@ struct EmployeeSideBySideComparisonRow: View {
                 .padding(.bottom, 4)
             
             HStack(alignment: .top, spacing: 20) {
+                // Saved Comparison Column
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Saved Comparison")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .bold()
+                    
+                    if let comparison = comparisonResult, let config = comparisonConfig {
+                        VStack(alignment: .leading, spacing: 4) {
+                            // Determine which eligibility rule applies
+                            let eligibilityRule = determineEligibilityRule(
+                                retirementAge: comparison.retirementAge,
+                                yearsToRetire: comparison.yearsToRetire,
+                                employeeHiredAge: comparison.employee.hiredAge,
+                                config: config
+                            )
+                            
+                            Text("Retirement Age: \(comparison.retirementAge)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Text("Eligible via: \(eligibilityRule)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            
+                            HStack {
+                                Text("Initial Annual Benefit:")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text(formatCurrency(comparison.initialAnnualPension))
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .lineLimit(1)
+                                    .fixedSize(horizontal: true, vertical: false)
+                            }
+                            
+                            if let finalAnnual = calculateFinalAnnualWithCOLA(
+                                initialPension: comparison.initialAnnualPension,
+                                config: config,
+                                retirementAge: comparison.retirementAge,
+                                employeeSex: comparison.employee.sex
+                            ) {
+                                HStack {
+                                    Text("Annual Benefit at Life Expectancy:")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    Text(formatCurrency(finalAnnual))
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .lineLimit(1)
+                                        .fixedSize(horizontal: true, vertical: false)
+                                }
+                            }
+                            
+                            HStack {
+                                Text("Lifetime Benefit:")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text(formatCurrency(comparison.totalDisbursements))
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .lineLimit(1)
+                                    .fixedSize(horizontal: true, vertical: false)
+                            }
+                        }
+                    } else {
+                        Text("N/A")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .italic()
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
                 // Newly Calculated Column
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Newly Calculated")
@@ -636,6 +719,8 @@ struct EmployeeSideBySideComparisonRow: View {
                                 Text(formatCurrency(current.initialAnnualPension))
                                     .font(.caption)
                                     .fontWeight(.medium)
+                                    .lineLimit(1)
+                                    .fixedSize(horizontal: true, vertical: false)
                             }
                             
                             if let finalAnnual = calculateFinalAnnualWithCOLA(
@@ -652,6 +737,8 @@ struct EmployeeSideBySideComparisonRow: View {
                                     Text(formatCurrency(finalAnnual))
                                         .font(.caption)
                                         .fontWeight(.medium)
+                                        .lineLimit(1)
+                                        .fixedSize(horizontal: true, vertical: false)
                                 }
                             }
                             
@@ -663,6 +750,8 @@ struct EmployeeSideBySideComparisonRow: View {
                                 Text(formatCurrency(current.totalDisbursements))
                                     .font(.caption)
                                     .fontWeight(.medium)
+                                    .lineLimit(1)
+                                    .fixedSize(horizontal: true, vertical: false)
                             }
                             
                             // Total Lifetime Difference
@@ -670,89 +759,21 @@ struct EmployeeSideBySideComparisonRow: View {
                                 Divider()
                                     .padding(.vertical, 4)
                                 
+                                let difference = current.totalDisbursements - comparison.totalDisbursements
+                                
                                 HStack {
                                     Text("Total Lifetime Difference:")
                                         .font(.caption)
                                         .fontWeight(.semibold)
                                         .foregroundColor(.secondary)
                                     Spacer()
-                                    let difference = current.totalDisbursements - comparison.totalDisbursements
                                     Text(formatCurrency(difference))
                                         .font(.caption)
                                         .fontWeight(.bold)
                                         .foregroundColor(difference > 0 ? .green : (difference < 0 ? .red : .primary))
+                                        .lineLimit(1)
+                                        .fixedSize(horizontal: true, vertical: false)
                                 }
-                            }
-                        }
-                    } else {
-                        Text("N/A")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .italic()
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                // Saved Current Comparison Column
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Saved Current Comparison")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .bold()
-                    
-                    if let comparison = comparisonResult, let config = comparisonConfig {
-                        VStack(alignment: .leading, spacing: 4) {
-                            // Determine which eligibility rule applies
-                            let eligibilityRule = determineEligibilityRule(
-                                retirementAge: comparison.retirementAge,
-                                yearsToRetire: comparison.yearsToRetire,
-                                employeeHiredAge: comparison.employee.hiredAge,
-                                config: config
-                            )
-                            
-                            Text("Retirement Age: \(comparison.retirementAge)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Text("Eligible via: \(eligibilityRule)")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                            
-                            HStack {
-                                Text("Initial Annual Benefit:")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Text(formatCurrency(comparison.initialAnnualPension))
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                            }
-                            
-                            if let finalAnnual = calculateFinalAnnualWithCOLA(
-                                initialPension: comparison.initialAnnualPension,
-                                config: config,
-                                retirementAge: comparison.retirementAge,
-                                employeeSex: comparison.employee.sex
-                            ) {
-                                HStack {
-                                    Text("Annual Benefit at Life Expectancy:")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    Spacer()
-                                    Text(formatCurrency(finalAnnual))
-                                        .font(.caption)
-                                        .fontWeight(.medium)
-                                }
-                            }
-                            
-                            HStack {
-                                Text("Lifetime Benefit:")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Text(formatCurrency(comparison.totalDisbursements))
-                                    .font(.caption)
-                                    .fontWeight(.medium)
                             }
                         }
                     } else {

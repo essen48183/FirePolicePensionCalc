@@ -91,6 +91,78 @@ struct PensionMathFormulas {
         return initialAnnualPayment * Double(years)
     }
     
+    /// Calculate amount needed at retirement accounting for COLA increases
+    /// This calculates the sum of all nominal payments (with COLA, without inflation)
+    /// Includes both retiree and survivor benefits
+    /// - Parameters:
+    ///   - initialAnnualPayment: Initial annual pension payment (retiree)
+    ///   - yearsRetired: Number of years retiree receives pension
+    ///   - spouseInitialAnnualPension: Initial annual pension payment for survivor (at retiree's death)
+    ///   - yearsReceivingSpousePension: Number of years survivor receives pension
+    ///   - colaPercent: COLA percentage as decimal (e.g., 0.05 for 5%)
+    ///   - isColaCompounding: Whether COLA is compounding
+    ///   - numberColas: Number of COLA adjustments
+    ///   - colaSpacing: Years between COLA adjustments
+    /// - Returns: Total amount needed at retirement (sum of all nominal payments)
+    static func amountNeededAtRetirementWithCOLA(
+        initialAnnualPayment: Double,
+        yearsRetired: Int,
+        spouseInitialAnnualPension: Double,
+        yearsReceivingSpousePension: Int,
+        colaPercent: Double,
+        isColaCompounding: Bool,
+        numberColas: Int,
+        colaSpacing: Int
+    ) -> Double {
+        var totalNominal: Double = 0
+        var currentPension = initialAnnualPayment
+        var colaCounter = 0
+        let straightCola = initialAnnualPayment * colaPercent
+        
+        // Calculate retiree's nominal payments (with COLA, without inflation)
+        for year in 1...yearsRetired {
+            // Apply COLA if it's a COLA year
+            if numberColas > 0 && year % colaSpacing == 0 && colaCounter < numberColas {
+                colaCounter += 1
+                if isColaCompounding {
+                    currentPension += currentPension * colaPercent
+                } else {
+                    currentPension += straightCola
+                }
+            }
+            
+            // Add nominal payment (no inflation adjustment)
+            totalNominal += currentPension
+        }
+        
+        // Calculate survivor's nominal payments (with COLA, without inflation)
+        if yearsReceivingSpousePension > 0 && spouseInitialAnnualPension > 0 {
+            var spousePension = spouseInitialAnnualPension
+            var spouseColaCounter = 0
+            let spouseStraightCola = spouseInitialAnnualPension * colaPercent
+            
+            // Note: spouseInitialAnnualPension already includes COLAs from retiree's years for Option 3
+            // For other options, it's the fixed amount at retiree's death
+            
+            for year in 1...yearsReceivingSpousePension {
+                // Apply COLA if it's a COLA year (during survivor's years)
+                if numberColas > 0 && year % colaSpacing == 0 && spouseColaCounter < numberColas {
+                    spouseColaCounter += 1
+                    if isColaCompounding {
+                        spousePension += spousePension * colaPercent
+                    } else {
+                        spousePension += spouseStraightCola
+                    }
+                }
+                
+                // Add nominal payment (no inflation adjustment)
+                totalNominal += spousePension
+            }
+        }
+        
+        return totalNominal
+    }
+    
     // MARK: - Real Rate of Return
     
     /// Calculate real rate of return (after inflation)

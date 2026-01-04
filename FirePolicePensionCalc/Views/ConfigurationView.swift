@@ -91,7 +91,13 @@ struct ConfigurationView: View {
         .onChange(of: viewModel.config.multiplierBasedOnFAC) { _ in handleConfigChange() }
         .onChange(of: viewModel.config.isColaCompounding) { _ in handleConfigChange() }
         .onChange(of: viewModel.config.colaNumber) { _ in handleConfigChange() }
-        .onChange(of: viewModel.config.colaSpacing) { _ in handleConfigChange() }
+        .onChange(of: viewModel.config.colaSpacing) { newValue in
+            // Prevent divide by zero error - ensure colaSpacing is at least 1
+            if newValue <= 0 {
+                viewModel.config.colaSpacing = 1
+            }
+            handleConfigChange()
+        }
         .onChange(of: viewModel.config.colaPercent) { _ in handleConfigChange() }
         .onChange(of: viewModel.config.yearsUntilVestment) { _ in handleConfigChange() }
         .onChange(of: viewModel.config.retirementAge) { _ in handleConfigChange() }
@@ -363,7 +369,8 @@ struct ConfigurationView: View {
                                 title: "COLA Spacing (years)",
                                 value: $viewModel.config.colaSpacing,
                                 defaultValue: 5,
-                                keyboardType: .numberPad
+                                keyboardType: .numberPad,
+                                minimumValue: 1
                             )
                         }
                         .padding(.vertical, 4)

@@ -40,9 +40,6 @@ class PensionCalculatorPaymentsInto {
         let interestRate = expectedInterestRate / 100.0
         let inflationRate = expectedInflationRate / 100.0
         
-        // Calculate real rate of return (after inflation)
-        let realRateOfReturn = ((1 + interestRate) / (1 + inflationRate)) - 1
-        
         // sumDesiredAtRetirement is the amount needed at retirement (100% of lifetime benefits in nominal dollars)
         // ACTUARIAL RULE: During retirement, investment returns won't outpace inflation, so we need the full sum
         // This represents the total of all pension payments (annual payment × years retired)

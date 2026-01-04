@@ -66,6 +66,8 @@ extension EmployeeCalculationResult: Codable {
         case employeeContributions
         case yearsToRetire
         case retirementAge
+        case spouseInitialAnnualPension
+        case yearsReceivingSpousePension
     }
     
     init(from decoder: Decoder) throws {
@@ -78,6 +80,9 @@ extension EmployeeCalculationResult: Codable {
         employeeContributions = try container.decode(Double.self, forKey: .employeeContributions)
         yearsToRetire = try container.decode(Int.self, forKey: .yearsToRetire)
         retirementAge = try container.decode(Int.self, forKey: .retirementAge)
+        // Provide defaults for backward compatibility with existing saved data
+        spouseInitialAnnualPension = try container.decodeIfPresent(Double.self, forKey: .spouseInitialAnnualPension) ?? 0
+        yearsReceivingSpousePension = try container.decodeIfPresent(Int.self, forKey: .yearsReceivingSpousePension) ?? 0
     }
     
     func encode(to encoder: Encoder) throws {
@@ -90,6 +95,8 @@ extension EmployeeCalculationResult: Codable {
         try container.encode(employeeContributions, forKey: .employeeContributions)
         try container.encode(yearsToRetire, forKey: .yearsToRetire)
         try container.encode(retirementAge, forKey: .retirementAge)
+        try container.encode(spouseInitialAnnualPension, forKey: .spouseInitialAnnualPension)
+        try container.encode(yearsReceivingSpousePension, forKey: .yearsReceivingSpousePension)
     }
 }
 
