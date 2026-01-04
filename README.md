@@ -6,6 +6,8 @@
 
 This application calculates pension benefits and required contributions for fire and police department employees. It implements a **100% funding actuarial rule** that ensures adequate funding at retirement time, accounting for investment returns during the accumulation phase and inflation during the payout phase.
 
+**⚠️ IMPORTANT**: This is a simplified actuarial model for planning and analysis purposes. It is NOT a full actuarial valuation. See [ACTUARIAL_ASSUMPTIONS.md](ACTUARIAL_ASSUMPTIONS.md) for important disclosures and limitations.
+
 ## Key Features
 
 ### Configuration & Input
@@ -172,6 +174,7 @@ See [ACTUARIAL_RULE.md](ACTUARIAL_RULE.md) and [CALCULATION_FLOW.md](CALCULATION
 
 ## Documentation
 
+- **[ACTUARIAL_ASSUMPTIONS.md](ACTUARIAL_ASSUMPTIONS.md)**: **IMPORTANT** - Assumption disclosures and model limitations. This is a simplified model, not a full actuarial valuation.
 - **[ACTUARIAL_RULE.md](ACTUARIAL_RULE.md)**: Explanation of the 100% funding actuarial rule
 - **[CALCULATION_FLOW.md](CALCULATION_FLOW.md)**: Step-by-step calculation process
 - **[ACTUARIAL_MATH_VERIFICATION.md](ACTUARIAL_MATH_VERIFICATION.md)**: Verification of all formulas
