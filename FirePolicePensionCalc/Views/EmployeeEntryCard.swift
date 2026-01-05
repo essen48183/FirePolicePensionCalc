@@ -9,7 +9,19 @@ import SwiftUI
 
 struct EmployeeEntryCard: View {
     @Binding var employee: EditableEmployee
+    var originalEmployee: EditableEmployee?
     var onDelete: (() -> Void)?
+    var onSave: (() -> Void)?
+    
+    private var hasChanges: Bool {
+        guard let original = originalEmployee else { return true } // New employees always have changes
+        return employee.name != original.name ||
+               employee.hiredYear != original.hiredYear ||
+               employee.dateOfBirth != original.dateOfBirth ||
+               employee.spouseDateOfBirth != original.spouseDateOfBirth ||
+               employee.sex != original.sex ||
+               employee.spouseSex != original.spouseSex
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -17,12 +29,22 @@ struct EmployeeEntryCard: View {
                 Text(employee.name.isEmpty ? "New Employee" : employee.name)
                     .font(.headline)
                 Spacer()
-                if onDelete != nil {
-                    Button(action: {
-                        onDelete?()
-                    }) {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
+                HStack(spacing: 12) {
+                    if hasChanges && onSave != nil {
+                        Button(action: {
+                            onSave?()
+                        }) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                        }
+                    }
+                    if onDelete != nil {
+                        Button(action: {
+                            onDelete?()
+                        }) {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
                     }
                 }
             }
@@ -128,7 +150,16 @@ struct EmployeeEntryCard: View {
             spouseDateOfBirth: 1992,
             sex: .male,
             spouseSex: .female
-        ))
+        )),
+        originalEmployee: EditableEmployee(
+            id: 1,
+            name: "John Doe",
+            hiredYear: 2020,
+            dateOfBirth: 1990,
+            spouseDateOfBirth: 1992,
+            sex: .male,
+            spouseSex: .female
+        )
     )
     .padding()
 }

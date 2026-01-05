@@ -116,13 +116,36 @@ struct EmployeeEditView: View {
     
     private var employeeList: some View {
         List {
+            // Add New Employee Button at the top
+            Section {
+                Button(action: addNewEmployee) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                        Text("Add New Employee")
+                            .font(.headline)
+                        Spacer()
+                    }
+                    .foregroundColor(.blue)
+                    .padding(.vertical, 8)
+                }
+            }
+            
+            // Employee list
             ForEach($editedEmployees) { $employee in
                 Section {
-                    EmployeeEntryCard(employee: $employee, onDelete: {
-                        if let index = editedEmployees.firstIndex(where: { $0.id == employee.id }) {
-                            editedEmployees.remove(at: index)
+                    EmployeeEntryCard(
+                        employee: $employee,
+                        originalEmployee: originalEmployees.first(where: { $0.id == employee.id }),
+                        onDelete: {
+                            if let index = editedEmployees.firstIndex(where: { $0.id == employee.id }) {
+                                editedEmployees.remove(at: index)
+                            }
+                        },
+                        onSave: {
+                            saveIndividualEmployee(employee)
                         }
-                    })
+                    )
                 } header: {
                     Text(employee.name.isEmpty ? "New Employee" : employee.name)
                 }
@@ -245,6 +268,51 @@ struct EmployeeEditView: View {
             }
         }
         return true
+    }
+    
+    private func saveIndividualEmployee(_ employee: EditableEmployee) {
+        // Validate the employee
+        guard !employee.name.trimmingCharacters(in: .whitespaces).isEmpty,
+              employee.hiredYear > 0,
+              employee.dateOfBirth > 0 else {
+            validationErrorMessage = "Please fill in all required fields for '\(employee.name.isEmpty ? "this employee" : employee.name)'."
+            showValidationError = true
+            return
+        }
+        
+        // Convert to Employee and save
+        let employeeToSave = employee.toEmployee()
+        
+        // Check if this is a new employee or existing
+        let existingIds = Set(viewModel.employees.map { $0.id })
+        if existingIds.contains(employeeToSave.id) {
+            viewModel.updateEmployee(employeeToSave)
+        } else {
+            // Generate ID for new employee if needed
+            if employeeToSave.id <= 0 {
+                let newId = getNextAvailableId()
+                var updatedEmployee = employee
+                updatedEmployee.id = newId
+                viewModel.addEmployee(updatedEmployee.toEmployee())
+            } else {
+                viewModel.addEmployee(employeeToSave)
+            }
+        }
+        
+        // Update the original employees list to reflect saved state
+        if let index = originalEmployees.firstIndex(where: { $0.id == employee.id }) {
+            originalEmployees[index] = employee
+        } else {
+            originalEmployees.append(employee)
+        }
+        
+        // Reload employees to ensure sync
+        viewModel.loadEmployees()
+        
+        // Update editedEmployees to match the saved state
+        if let index = editedEmployees.firstIndex(where: { $0.id == employee.id }) {
+            editedEmployees[index] = employee
+        }
     }
     
     private func saveChanges() {

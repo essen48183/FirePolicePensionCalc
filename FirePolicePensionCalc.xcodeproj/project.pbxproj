@@ -31,6 +31,7 @@
 		388A148C2F0B2EB500C5CB50 /* RATE_USAGE_VERIFICATION.md in Resources */ = {isa = PBXBuildFile; fileRef = 388A14882F0B2EB500C5CB50 /* RATE_USAGE_VERIFICATION.md */; };
 		388A148D2F0B2EB500C5CB50 /* ACTUARIAL_MATH_VERIFICATION.md in Resources */ = {isa = PBXBuildFile; fileRef = 388A14842F0B2EB500C5CB50 /* ACTUARIAL_MATH_VERIFICATION.md */; };
 		388A148E2F0B2EB500C5CB50 /* ACTUARIAL_RULE.md in Resources */ = {isa = PBXBuildFile; fileRef = 388A14852F0B2EB500C5CB50 /* ACTUARIAL_RULE.md */; };
+		388A14902F0C39A900C5CB50 /* employees.csv in Resources */ = {isa = PBXBuildFile; fileRef = 388A148F2F0C39A900C5CB50 /* employees.csv */; };
 		38A34C8D2F047EB800B97263 /* EmployeeEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A34C8C2F047EB800B97263 /* EmployeeEditView.swift */; };
 		A1000001 /* FirePolicePensionCalcApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002 /* FirePolicePensionCalcApp.swift */; };
 		A1000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004 /* ContentView.swift */; };
@@ -75,6 +76,7 @@
 		388A14862F0B2EB500C5CB50 /* CALCULATION_FLOW.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CALCULATION_FLOW.md; sourceTree = "<group>"; };
 		388A14872F0B2EB500C5CB50 /* QUICK_START.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = QUICK_START.md; sourceTree = "<group>"; };
 		388A14882F0B2EB500C5CB50 /* RATE_USAGE_VERIFICATION.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = RATE_USAGE_VERIFICATION.md; sourceTree = "<group>"; };
+		388A148F2F0C39A900C5CB50 /* employees.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = employees.csv; sourceTree = "<group>"; };
 		38A34C8C2F047EB800B97263 /* EmployeeEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmployeeEditView.swift; sourceTree = "<group>"; };
 		A1000000 /* FirePolicePensionCalc.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FirePolicePensionCalc.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1000002 /* FirePolicePensionCalcApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirePolicePensionCalcApp.swift; sourceTree = "<group>"; };
@@ -174,6 +176,7 @@
 		A1000041 /* Data */ = {
 			isa = PBXGroup;
 			children = (
+				388A148F2F0C39A900C5CB50 /* employees.csv */,
 				388A14832F0B2EB500C5CB50 /* ACTUARIAL_ASSUMPTIONS.md */,
 				388A14842F0B2EB500C5CB50 /* ACTUARIAL_MATH_VERIFICATION.md */,
 				388A14852F0B2EB500C5CB50 /* ACTUARIAL_RULE.md */,
@@ -283,6 +286,7 @@
 			files = (
 				A1000032 /* Preview Assets.xcassets in Resources */,
 				A1000029 /* Assets.xcassets in Resources */,
+				388A14902F0C39A900C5CB50 /* employees.csv in Resources */,
 				A1000017 /* employees.json in Resources */,
 				388A14892F0B2EB500C5CB50 /* ACTUARIAL_ASSUMPTIONS.md in Resources */,
 				388A148A2F0B2EB500C5CB50 /* QUICK_START.md in Resources */,
@@ -372,7 +376,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1.2;
+				CURRENT_PROJECT_VERSION = 1.3;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 265A396GQA;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -394,7 +398,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -439,7 +443,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1.2;
+				CURRENT_PROJECT_VERSION = 1.3;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 265A396GQA;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -455,7 +459,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -472,7 +476,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FirePolicePensionCalc/FirePolicePensionCalc.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.2;
+				CURRENT_PROJECT_VERSION = 1.3;
 				DEVELOPMENT_ASSET_PATHS = "\"FirePolicePensionCalc/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -487,7 +491,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.essendavis.firepolicepensioncalc;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -503,7 +507,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FirePolicePensionCalc/FirePolicePensionCalc.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.2;
+				CURRENT_PROJECT_VERSION = 1.3;
 				DEVELOPMENT_ASSET_PATHS = "\"FirePolicePensionCalc/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -518,7 +522,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.essendavis.firepolicepensioncalc;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_COMPILATION_MODE = wholemodule;

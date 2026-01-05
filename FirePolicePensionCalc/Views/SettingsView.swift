@@ -90,6 +90,7 @@ struct SettingsView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                     }
+                    .buttonStyle(.plain)
                     .listRowInsets(EdgeInsets())
                 }
                 
@@ -113,6 +114,7 @@ struct SettingsView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                     }
+                    .buttonStyle(.plain)
                     .listRowInsets(EdgeInsets())
                 }
             }
@@ -174,6 +176,13 @@ struct SettingsView: View {
     }
     
     private func exportEmployees() {
+        // Check if there are employees to export
+        guard !viewModel.employees.isEmpty else {
+            restoreErrorMessage = "No employees to export. Please add employees first."
+            showRestoreError = true
+            return
+        }
+        
         do {
             // Generate CSV content
             var csv = "id,name,hiredYear,dateOfBirth,spouseDateOfBirth,sex,spouseSex\n"
@@ -259,90 +268,145 @@ struct SettingsView: View {
     }
     
     private func importEmployees(from url: URL) {
+        // Determine file type based on extension
+        let fileExtension = url.pathExtension.lowercased()
+        let isCSV = fileExtension == "csv" || fileExtension == "txt"
+        let isJSON = fileExtension == "json"
+        
+        var csvError: Error?
+        
         do {
-            // Try CSV first
-            let csvString = try String(contentsOf: url, encoding: .utf8)
-            let importedEmployees = try parseCSV(csvString)
-            
-            // Validate employees
-            guard !importedEmployees.isEmpty else {
-                restoreErrorMessage = "The backup file is empty or contains no valid employee data."
-                showRestoreError = true
-                return
-            }
-            
-            // Replace current employees with imported ones
-            viewModel.employees = importedEmployees
-            viewModel.config.totalNumberEmployees = importedEmployees.count
-            
-            // Save to persistent storage
-            try EmployeeDataLoader.saveEmployees(importedEmployees)
-            
-            showRestoreSuccess = true
-        } catch {
-            // Try JSON as fallback for backward compatibility
-            do {
-                let data = try Data(contentsOf: url)
-                let decoder = JSONDecoder()
-                let importedEmployees = try decoder.decode([Employee].self, from: data)
+            if isCSV || (!isJSON && !isCSV) {
+                // Try CSV first (or if extension is unknown, try CSV first)
+                let csvString = try String(contentsOf: url, encoding: .utf8)
+                let importedEmployees = try parseCSV(csvString)
                 
+                // Validate employees
                 guard !importedEmployees.isEmpty else {
-                    restoreErrorMessage = "The backup file is empty."
+                    restoreErrorMessage = "The CSV file is empty or contains no valid employee data."
                     showRestoreError = true
                     return
                 }
                 
+                // Replace current employees with imported ones
                 viewModel.employees = importedEmployees
                 viewModel.config.totalNumberEmployees = importedEmployees.count
+                
+                // Save to persistent storage
                 try EmployeeDataLoader.saveEmployees(importedEmployees)
+                
                 showRestoreSuccess = true
-            } catch {
-                restoreErrorMessage = "Error importing employees: \(error.localizedDescription)\n\nPlease ensure the file is a valid CSV or JSON file."
-                showRestoreError = true
+                return
             }
+        } catch {
+            csvError = error
+            // If CSV parsing failed and file is explicitly CSV, show error
+            if isCSV {
+                restoreErrorMessage = "Error parsing CSV file: \(error.localizedDescription)\n\nPlease ensure the file is a valid CSV file with the correct format."
+                showRestoreError = true
+                return
+            }
+            // Otherwise, try JSON as fallback
+        }
+        
+        // Try JSON (either explicitly JSON or as fallback)
+        do {
+            let data = try Data(contentsOf: url)
+            let decoder = JSONDecoder()
+            let importedEmployees = try decoder.decode([Employee].self, from: data)
+            
+            guard !importedEmployees.isEmpty else {
+                restoreErrorMessage = "The JSON file is empty or contains no valid employee data."
+                showRestoreError = true
+                return
+            }
+            
+            viewModel.employees = importedEmployees
+            viewModel.config.totalNumberEmployees = importedEmployees.count
+            try EmployeeDataLoader.saveEmployees(importedEmployees)
+            showRestoreSuccess = true
+        } catch let jsonError {
+            if isJSON {
+                restoreErrorMessage = "Error parsing JSON file: \(jsonError.localizedDescription)\n\nPlease ensure the file is a valid JSON file."
+            } else {
+                let csvErrorMsg = csvError?.localizedDescription ?? "Unknown error"
+                restoreErrorMessage = "Error importing file: Could not parse as CSV or JSON.\n\nCSV error: \(csvErrorMsg)\nJSON error: \(jsonError.localizedDescription)"
+            }
+            showRestoreError = true
         }
     }
     
     // MARK: - CSV Helper Methods
     
     private func parseCSV(_ csvString: String) throws -> [Employee] {
-        let lines = csvString.components(separatedBy: .newlines).filter { !$0.isEmpty }
-        guard !lines.isEmpty else { return [] }
+        let lines = csvString.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        
+        guard !lines.isEmpty else {
+            throw NSError(domain: "SettingsView", code: 1, userInfo: [NSLocalizedDescriptionKey: "CSV file is empty"])
+        }
         
         // Parse header
         let header = parseCSVLine(lines[0])
         guard header.count >= 6 else {
-            throw NSError(domain: "SettingsView", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid CSV header"])
+            throw NSError(domain: "SettingsView", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid CSV header: Expected at least 6 columns, found \(header.count)"])
         }
         
-        // Find column indices
-        let idIndex = header.firstIndex(of: "id") ?? 0
-        let nameIndex = header.firstIndex(of: "name") ?? 1
-        let hiredYearIndex = header.firstIndex(of: "hiredYear") ?? 2
-        let dateOfBirthIndex = header.firstIndex(of: "dateOfBirth") ?? 3
-        let spouseDateOfBirthIndex = header.firstIndex(of: "spouseDateOfBirth") ?? 4
-        let sexIndex = header.firstIndex(of: "sex") ?? 5
-        let spouseSexIndex = header.firstIndex(of: "spouseSex")
+        // Find column indices (case-insensitive)
+        let headerLower = header.map { $0.lowercased() }
+        let idIndex = headerLower.firstIndex(of: "id") ?? 0
+        let nameIndex = headerLower.firstIndex(of: "name") ?? 1
+        let hiredYearIndex = headerLower.firstIndex(of: "hiredyear") ?? 2
+        let dateOfBirthIndex = headerLower.firstIndex(of: "dateofbirth") ?? 3
+        let spouseDateOfBirthIndex = headerLower.firstIndex(of: "spousedateofbirth") ?? 4
+        let sexIndex = headerLower.firstIndex(of: "sex") ?? 5
+        let spouseSexIndex = headerLower.firstIndex(of: "spousesex")
         
         var employees: [Employee] = []
         var nextId = 1
+        var rowNumber = 0
         
         // Parse data rows
         for (index, line) in lines.enumerated() {
             if index == 0 { continue } // Skip header
             
+            rowNumber = index
             let columns = parseCSVLine(line)
-            guard columns.count >= 6 else { continue }
             
-            let id = Int(columns[idIndex]) ?? nextId
-            nextId = max(nextId, id + 1)
+            // Skip rows that don't have enough columns
+            guard columns.count >= 6 else {
+                print("Warning: Row \(rowNumber) has only \(columns.count) columns, skipping")
+                continue
+            }
+            
+            // Parse ID
+            let id: Int
+            if let parsedId = Int(columns[idIndex].trimmingCharacters(in: .whitespacesAndNewlines)) {
+                id = parsedId
+                nextId = max(nextId, id + 1)
+            } else {
+                id = nextId
+                nextId += 1
+            }
+            
+            // Parse name (required)
             let name = columns[nameIndex].trimmingCharacters(in: .whitespacesAndNewlines)
-            let hiredYear = Int(columns[hiredYearIndex]) ?? 0
-            let dateOfBirth = Int(columns[dateOfBirthIndex]) ?? 0
-            let spouseDateOfBirth = Int(columns[spouseDateOfBirthIndex]) ?? 0
+            guard !name.isEmpty else {
+                print("Warning: Row \(rowNumber) has empty name, skipping")
+                continue
+            }
+            
+            // Parse numeric fields
+            let hiredYear = Int(columns[hiredYearIndex].trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+            let dateOfBirth = Int(columns[dateOfBirthIndex].trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+            let spouseDateOfBirth = Int(columns[spouseDateOfBirthIndex].trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+            
+            // Parse sex (case-insensitive, handles M/MALE/Male and F/FEMALE/Female)
             let sexString = columns[sexIndex].trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
             let sex: Sex = (sexString == "F" || sexString == "FEMALE") ? .female : .male
             
+            // Parse spouse sex (optional)
             var spouseSex: Sex? = nil
             if let spouseSexIndex = spouseSexIndex, spouseSexIndex < columns.count {
                 let spouseSexString = columns[spouseSexIndex].trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
@@ -361,6 +425,10 @@ struct SettingsView: View {
                 spouseSex: spouseSex
             )
             employees.append(employee)
+        }
+        
+        guard !employees.isEmpty else {
+            throw NSError(domain: "SettingsView", code: 3, userInfo: [NSLocalizedDescriptionKey: "No valid employee data found in CSV file"])
         }
         
         return employees
