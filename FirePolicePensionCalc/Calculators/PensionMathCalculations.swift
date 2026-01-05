@@ -73,7 +73,7 @@ struct PensionMathCalculations {
     ///   - lifeExpectancyMale: Male life expectancy
     ///   - lifeExpectancyFemale: Female life expectancy
     ///   - lifeExpDiff: Difference from standard life expectancy
-    /// - Returns: Years receiving pension (0 if negative)
+    /// - Returns: Years receiving pension (minimum 1 year - no matter hire age, there should be at least 1 year of benefit)
     static func calculateYearsReceivingPension(
         retirementAge: Int,
         employeeSex: Sex,
@@ -83,7 +83,9 @@ struct PensionMathCalculations {
     ) -> Int {
         let lifeExpectancy = employeeSex == .male ? lifeExpectancyMale : lifeExpectancyFemale
         let years = lifeExpectancy + lifeExpDiff - retirementAge
-        return max(0, years)
+        // Ensure minimum 1 year of benefit - no matter the hire age, there should be at least 1 year
+        // This prevents negative benefits for older new hires
+        return max(1, years)
     }
     
     /// Calculate years receiving spouse pension based on option

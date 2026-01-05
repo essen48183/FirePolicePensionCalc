@@ -62,14 +62,31 @@ class PensionCalculatorService {
         let currentYear = Calendar.current.component(.year, from: Date())
         
         for employee in employees {
+            // Check if employee is vested (must work at least yearsUntilVestment)
+            // Minimum vestment is 1 to prevent division by zero and ensure valid calculations
+            let vestmentRequirement = max(config.yearsUntilVestment, 1)
+            let yearsWorked = currentYear - employee.hiredYear
+            let isVested = yearsWorked >= vestmentRequirement
+            
+            // If not vested, skip this employee (no benefits until vested)
+            if !isVested {
+                // Employee hasn't worked long enough to be vested - no benefits yet
+                continue
+            }
+            
             // Calculate years needed to retire
             let yearsToRetire = calculateYearsToRetire(
                 employee: employee,
                 config: config
             )
             
-            let retirementAge = employee.hiredAge + yearsToRetire
-            let employeeEarliestEligibleRetirementAge = (employee.hiredYear + yearsToRetire) - currentYear + employee.currentAge
+            // Ensure yearsToRetire is at least the vestment period
+            // This prevents negative or invalid calculations for older new hires
+            // Minimum vestment is 1 to prevent division by zero and ensure valid calculations
+            let minYearsToRetire = max(yearsToRetire, vestmentRequirement)
+            
+            let retirementAge = employee.hiredAge + minYearsToRetire
+            let employeeEarliestEligibleRetirementAge = (employee.hiredYear + minYearsToRetire) - currentYear + employee.currentAge
             
             // Calculate disbursements using system-wide wages
             // SYSTEM-WIDE RULE: Always use Option 1 (no survivor) for system-wide calculations
@@ -87,7 +104,7 @@ class PensionCalculatorService {
                 colaPercent: config.colaPercent,
                 inflateRate: config.expectedFutureInflationRate,
                 retirementAge: employeeEarliestEligibleRetirementAge,
-                totalYearsService: yearsToRetire,
+                totalYearsService: minYearsToRetire,
                 employeeSex: employee.sex,
                 spouseSex: employee.spouseSex,
                 lifeExpectancyMale: config.lifeExpectancyMale,
@@ -103,7 +120,7 @@ class PensionCalculatorService {
             let employeeContribution = PensionMathCalculations.calculateTotalEmployeeContribution(
                 baseWage: config.systemWideAverageWage,
                 contributionPercent: config.employeeContributionPercent,
-                yearsOfService: yearsToRetire
+                yearsOfService: minYearsToRetire
             )
             
             // Calculate amount needed at retirement to fund the annuity
@@ -118,7 +135,14 @@ class PensionCalculatorService {
             //
             // Only retiree's portion - no survivor benefits for system-wide calculations
             let employeeLifeExpectancy = employee.sex == .male ? config.lifeExpectancyMale : config.lifeExpectancyFemale
-            let yearsRetired = employeeLifeExpectancy + config.deltaExtraLife - employeeEarliestEligibleRetirementAge
+            var yearsRetired = employeeLifeExpectancy + config.deltaExtraLife - employeeEarliestEligibleRetirementAge
+            
+            // Ensure minimum 1 year of benefit - no matter the hire age, there should be at least 1 year
+            // This prevents negative benefits for older new hires
+            if yearsRetired < 1 {
+                yearsRetired = 1
+            }
+            
             let colaPercent = config.colaPercent / 100.0
             let amountNeededAtRetirement = PensionMathFormulas.amountNeededAtRetirementWithCOLA(
                 initialAnnualPayment: disbursementResult.initialAnnualPension,
@@ -140,7 +164,7 @@ class PensionCalculatorService {
                 facWage: config.systemWideFacWage,
                 expectedInterestRate: config.expectedSystemFutureRateReturn,
                 expectedInflationRate: config.expectedFutureInflationRate,
-                yearsInvesting: yearsToRetire,
+                yearsInvesting: minYearsToRetire,
                 yearsRetired: yearsRetired,
                 compoundsPerYear: 1
             )
@@ -154,7 +178,7 @@ class PensionCalculatorService {
             totalDisbursements += disbursementResult.totalPayout
             totalCityContributions += cityContribution
             totalEmployeeContributions += employeeContribution
-            totalYearsOfService += yearsToRetire
+            totalYearsOfService += minYearsToRetire
             
             employeeResults.append(EmployeeCalculationResult(
                 employee: employee,
@@ -162,7 +186,7 @@ class PensionCalculatorService {
                 initialAnnualPension: disbursementResult.initialAnnualPension,
                 cityContributions: cityContribution,
                 employeeContributions: employeeContribution,
-                yearsToRetire: yearsToRetire,
+                yearsToRetire: minYearsToRetire,
                 retirementAge: retirementAge,
                 spouseInitialAnnualPension: disbursementResult.spouseInitialAnnualPension,
                 yearsReceivingSpousePension: disbursementResult.yearsReceivingSpousePension
@@ -181,8 +205,11 @@ class PensionCalculatorService {
             // Use the same years retired calculation as in disbursements
             let employeeLifeExpectancy = employeeResult.employee.sex == .male ? config.lifeExpectancyMale : config.lifeExpectancyFemale
             var yearsRetired = employeeLifeExpectancy + config.deltaExtraLife - employeeEarliestEligibleRetirementAge
-            if yearsRetired < 0 {
-                yearsRetired = 0
+            
+            // Ensure minimum 1 year of benefit - no matter the hire age, there should be at least 1 year
+            // This prevents negative benefits for older new hires
+            if yearsRetired < 1 {
+                yearsRetired = 1
             }
             
             // Calculate future value of employee contributions using PensionMathCalculations
@@ -395,7 +422,14 @@ class PensionCalculatorService {
         // Calculate sum of all nominal payments (with COLA, without inflation)
         // Includes both retiree and survivor benefits
         let employeeLifeExpectancy = config.fictionalEmployeeSex == .male ? config.lifeExpectancyMale : config.lifeExpectancyFemale
-        let yearsRetired = employeeLifeExpectancy + config.deltaExtraLife - retirementAge
+        var yearsRetired = employeeLifeExpectancy + config.deltaExtraLife - retirementAge
+        
+        // Ensure minimum 1 year of benefit - no matter the hire age, there should be at least 1 year
+        // This prevents negative benefits for older new hires
+        if yearsRetired < 1 {
+            yearsRetired = 1
+        }
+        
         let colaPercent = config.colaPercent / 100.0
         let amountNeededAtRetirement = PensionMathFormulas.amountNeededAtRetirementWithCOLA(
             initialAnnualPayment: disbursementResult.initialAnnualPension,
@@ -426,13 +460,23 @@ class PensionCalculatorService {
     }
     
     private func calculateYearsToRetire(employee: Employee, config: PensionConfiguration) -> Int {
+        // First, ensure the result is at least the vestment period
+        // Employees must work at least yearsUntilVestment before being eligible
+        // Minimum vestment is 1 to prevent division by zero and ensure valid calculations
+        let minRequiredYears = max(config.yearsUntilVestment, 1)
+        
+        let calculatedYears: Int
         if config.retirementAge <= (config.careerYearsService + employee.hiredAge) {
-            return config.retirementAge - employee.hiredAge
+            calculatedYears = config.retirementAge - employee.hiredAge
         } else if (employee.hiredAge + config.careerYearsService) < config.minAgeForYearsService {
-            return config.minAgeForYearsService - employee.hiredAge
+            calculatedYears = config.minAgeForYearsService - employee.hiredAge
         } else {
-            return config.careerYearsService
+            calculatedYears = config.careerYearsService
         }
+        
+        // Return the maximum of calculated years and vestment requirement
+        // This ensures employees must work at least the vestment period
+        return max(calculatedYears, minRequiredYears)
     }
 }
 

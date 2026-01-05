@@ -10,6 +10,7 @@ import SwiftUI
 struct ConfigurationView: View {
     @ObservedObject var viewModel: PensionCalculatorViewModel
     @State private var showFACTooltip = false
+    @State private var showVestmentTooltip = false
     @State private var showFACCalculator = false
     @State private var showSystemFACCalculator = false
     @State private var showPensionOptionDescription = false
@@ -57,6 +58,11 @@ struct ConfigurationView: View {
         }
         .sheet(isPresented: $showPensionOptionDescription) {
             PensionOptionDescriptionView()
+        }
+        .alert("Years Until Vestment", isPresented: $showVestmentTooltip) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Employees must work this many years before becoming eligible for pension benefits.\n\nNote: If you are opening a new pension system where all inductees are immediately vested, you can temporarily set this value to 1 for calculations.")
         }
         .alert("FAC Wage", isPresented: $showFACTooltip) {
             Button("OK", role: .cancel) { }
@@ -387,7 +393,16 @@ struct ConfigurationView: View {
     private var retirementEligibilitySection: some View {
         Section(header: Text("Retirement Eligibility")) {
                     HStack {
-                        Text("Years Until Vestment")
+                        HStack(spacing: 4) {
+                            Text("Years Until Vestment")
+                            Button(action: {
+                                showVestmentTooltip = true
+                            }) {
+                                Image(systemName: "info.circle")
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                            }
+                        }
                         Spacer()
                         IntegerInputField(
                             title: "Years Until Vestment",
