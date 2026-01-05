@@ -81,9 +81,6 @@ class PensionCalculatorDisbursements {
             yearsOfService: totalYearsService
         )
         
-        // Calculate spouse age
-        let spouseAge = retirementAge + spouseAgeDiff
-        
         // FIRST: Always calculate Option 1's total lifetime benefit (retiree only)
         let option1TotalBenefit = calculateOption1TotalBenefit(
             initialPension: option1Pension,

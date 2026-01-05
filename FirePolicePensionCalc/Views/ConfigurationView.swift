@@ -36,11 +36,7 @@ struct ConfigurationView: View {
             Form {
                 individualInfoSection
                 
-                multiplierAndCOLASection
-                
-                retirementEligibilitySection
-                
-                systemWideWageSection
+                systemwideAssumptionsSection
                 
                 economicAssumptionsSection
                 
@@ -313,139 +309,165 @@ struct ConfigurationView: View {
                 }
     }
     
+    
+    private var systemwideAssumptionsSection: some View {
+        Section(header: Text("Systemwide Assumptions")) {
+            multiplierAndCOLASection
+            retirementEligibilitySection
+            systemWideWageSection
+        }
+    }
+    
     private var multiplierAndCOLASection: some View {
-        Section {
-                    VStack(spacing: 0) {
-                        // Multiplier Settings
-                        HStack {
-                            Text("Multiplier (%)")
-                            Spacer()
-                            NumberInputField(
-                                title: "Multiplier (%)",
-                                value: $viewModel.config.multiplier,
-                                defaultValue: 2.5,
-                                format: .number,
-                                keyboardType: .decimalPad
-                            )
-                        }
-                        .padding(.vertical, 4)
-                        
-                        Toggle("Pension Based on FAC (otherwise base on Fixed Wage)", isOn: $viewModel.config.multiplierBasedOnFAC)
-                            .padding(.vertical, 4)
-                        
-                        Divider()
-                            .padding(.vertical, 8)
-                        
-                        
-                        HStack {
-                            // COLA Settings
-                            Text("Number of COLAs")
-                            Spacer()
-                            IntegerInputField(
-                                title: "Number of COLAs",
-                                value: $viewModel.config.colaNumber,
-                                defaultValue: 2,
-                                keyboardType: .numberPad
-                            )
-                        }
-                        .padding(.vertical, 4)
-                        
-                        HStack {
-                            Text("COLA Spacing (years)")
-                            Spacer()
-                            IntegerInputField(
-                                title: "COLA Spacing (years)",
-                                value: $viewModel.config.colaSpacing,
-                                defaultValue: 5,
-                                keyboardType: .numberPad,
-                                minimumValue: 1
-                            )
-                        }
-                        .padding(.vertical, 4)
-                        
-                        HStack {
-                            Text("COLA Percent (%)")
-                            Spacer()
-                            NumberInputField(
-                                title: "COLA Percent (%)",
-                                value: $viewModel.config.colaPercent,
-                                defaultValue: 6.0,
-                                format: .number,
-                                keyboardType: .decimalPad
-                            )
-                        }
-                        .padding(.vertical, 4)
-                        
-                        Toggle("COLA is Compounding?", isOn: $viewModel.config.isColaCompounding)
-                            .padding(.vertical, 4)
-                        
-                    }
-                    .padding(8)
-                    .background(Color.blue.opacity(0.1))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.blue, lineWidth: 2)
+        Group {
+            VStack(spacing: 0) {
+                // Employee Contribution Rate
+                HStack {
+                    Text("Employee Contribution (%) - if your employee contributions go to a separate annuity, not the pension fund, set this to 0")
+                    Spacer()
+                    NumberInputField(
+                        title: "Employee Contribution (%)",
+                        value: $viewModel.config.employeeContributionPercent,
+                        defaultValue: 5.0,
+                        format: .number,
+                        keyboardType: .decimalPad
                     )
-                    .cornerRadius(8)
                 }
+                .padding(.vertical, 4)
+                
+                Divider()
+                    .padding(.vertical, 8)
+                
+                // Multiplier Settings
+                HStack {
+                    Text("Multiplier (%)")
+                    Spacer()
+                    NumberInputField(
+                        title: "Multiplier (%)",
+                        value: $viewModel.config.multiplier,
+                        defaultValue: 2.5,
+                        format: .number,
+                        keyboardType: .decimalPad
+                    )
+                }
+                .padding(.vertical, 4)
+                
+                Toggle("Pension Based on FAC (otherwise base on Fixed Wage)", isOn: $viewModel.config.multiplierBasedOnFAC)
+                    .padding(.vertical, 4)
+                
+                Divider()
+                    .padding(.vertical, 8)
+                
+                
+                HStack {
+                    // COLA Settings
+                    Text("Number of COLAs")
+                    Spacer()
+                    IntegerInputField(
+                        title: "Number of COLAs",
+                        value: $viewModel.config.colaNumber,
+                        defaultValue: 2,
+                        keyboardType: .numberPad
+                    )
+                }
+                .padding(.vertical, 4)
+                
+                HStack {
+                    Text("COLA Spacing (years)")
+                    Spacer()
+                    IntegerInputField(
+                        title: "COLA Spacing (years)",
+                        value: $viewModel.config.colaSpacing,
+                        defaultValue: 5,
+                        keyboardType: .numberPad,
+                        minimumValue: 1
+                    )
+                }
+                .padding(.vertical, 4)
+                
+                HStack {
+                    Text("COLA Percent (%)")
+                    Spacer()
+                    NumberInputField(
+                        title: "COLA Percent (%)",
+                        value: $viewModel.config.colaPercent,
+                        defaultValue: 6.0,
+                        format: .number,
+                        keyboardType: .decimalPad
+                    )
+                }
+                .padding(.vertical, 4)
+                
+                Toggle("COLA is Compounding?", isOn: $viewModel.config.isColaCompounding)
+                    .padding(.vertical, 4)
+                
+            }
+            .padding(8)
+            .background(Color.blue.opacity(0.1))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.blue, lineWidth: 2)
+            )
+            .cornerRadius(8)
+        }
     }
     
     private var retirementEligibilitySection: some View {
-        Section(header: Text("Retirement Eligibility")) {
-                    HStack {
-                        HStack(spacing: 4) {
-                            Text("Years Until Vestment")
-                            Button(action: {
-                                showVestmentTooltip = true
-                            }) {
-                                Image(systemName: "info.circle")
-                                    .font(.caption)
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                        Spacer()
-                        IntegerInputField(
-                            title: "Years Until Vestment",
-                            value: $viewModel.config.yearsUntilVestment,
-                            defaultValue: 5,
-                            keyboardType: .numberPad
-                        )
-                    }
-                    HStack {
-                        Text("Retirement Age (Age Triggered After Vestment Attained)")
-                        Spacer()
-                        IntegerInputField(
-                            title: "Retirement Age",
-                            value: $viewModel.config.retirementAge,
-                            defaultValue: 55,
-                            keyboardType: .numberPad
-                        )
-                    }
-                    HStack {
-                        Text("Years of Service (To Retire/Draw Immediately)")
-                        Spacer()
-                        IntegerInputField(
-                            title: "Years of Service",
-                            value: $viewModel.config.careerYearsService,
-                            defaultValue: 20,
-                            keyboardType: .numberPad
-                        )
-                    }
-                    HStack {
-                        Text("Min Age for Years of Service Retirement")
-                        Spacer()
-                        IntegerInputField(
-                            title: "Min Age for Years of Service",
-                            value: $viewModel.config.minAgeForYearsService,
-                            defaultValue: 50,
-                            keyboardType: .numberPad
-                        )
+        Group {
+            HStack {
+                HStack(spacing: 4) {
+                    Text("Years Until Vestment")
+                    Button(action: {
+                        showVestmentTooltip = true
+                    }) {
+                        Image(systemName: "info.circle")
+                            .font(.caption)
+                            .foregroundColor(.blue)
                     }
                 }
+                Spacer()
+                IntegerInputField(
+                    title: "Years Until Vestment",
+                    value: $viewModel.config.yearsUntilVestment,
+                    defaultValue: 5,
+                    keyboardType: .numberPad
+                )
+            }
+            HStack {
+                Text("Retirement Age (Age Triggered After Vestment Attained)")
+                Spacer()
+                IntegerInputField(
+                    title: "Retirement Age",
+                    value: $viewModel.config.retirementAge,
+                    defaultValue: 55,
+                    keyboardType: .numberPad
+                )
+            }
+            HStack {
+                Text("Years of Service (To Retire/Draw Immediately)")
+                Spacer()
+                IntegerInputField(
+                    title: "Years of Service",
+                    value: $viewModel.config.careerYearsService,
+                    defaultValue: 20,
+                    keyboardType: .numberPad
+                )
+            }
+            HStack {
+                Text("Min Age for Years of Service Retirement")
+                Spacer()
+                IntegerInputField(
+                    title: "Min Age for Years of Service",
+                    value: $viewModel.config.minAgeForYearsService,
+                    defaultValue: 50,
+                    keyboardType: .numberPad
+                )
+            }
+        }
     }
     
     private var systemWideWageSection: some View {
-        Section(header: Text("System-Wide Wage Assumptions")) {
+        Group {
                     HStack {
                         Text("System-Wide Avg Retiree Base Wage")
                         Spacer()
@@ -517,17 +539,6 @@ struct ConfigurationView: View {
                             title: "Expected Return (%)",
                             value: $viewModel.config.expectedSystemFutureRateReturn,
                             defaultValue: 7.25,
-                            format: .number,
-                            keyboardType: .decimalPad
-                        )
-                    }
-                    HStack {
-                        Text("Employee Contribution (%) - if your employee contributions go to a separate annuity, not the pension fund, set this to 0")
-                        Spacer()
-                        NumberInputField(
-                            title: "Employee Contribution (%)",
-                            value: $viewModel.config.employeeContributionPercent,
-                            defaultValue: 5.0,
                             format: .number,
                             keyboardType: .decimalPad
                         )

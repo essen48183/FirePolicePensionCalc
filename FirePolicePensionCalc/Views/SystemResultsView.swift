@@ -117,21 +117,63 @@ struct SystemResultsView: View {
                                 EmployeeResultRow(result: employeeResult)
                                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                             }
-                            
-                            if result.employeeResults.count > 10 && !showAllEmployees {
+                        }
+                        
+                        // Show All / Show Less button section - always show if there are employees
+                        let vestedEmployeesCount = result.employeeResults.count
+                        let totalEmployeesInSystem = viewModel.employees.count
+                        let displayedCount = getDisplayedEmployees(from: result.employeeResults).count
+                        
+                        if vestedEmployeesCount > 0 {
+                            Section {
                                 Button(action: {
-                                    showAllEmployees = true
+                                    showAllEmployees.toggle()
                                 }) {
-                                    HStack {
-                                        Text("... and \(result.employeeResults.count - 10) more employees")
-                                            .foregroundColor(.blue)
-                                        Image(systemName: "chevron.down")
-                                            .foregroundColor(.blue)
-                                            .font(.caption)
+                                    VStack(spacing: 4) {
+                                        HStack {
+                                            Spacer()
+                                            if showAllEmployees && vestedEmployeesCount > 10 {
+                                                Text("Show Less")
+                                                    .font(.headline)
+                                                    .foregroundColor(.white)
+                                                Image(systemName: "chevron.up")
+                                                    .foregroundColor(.white)
+                                                    .font(.caption)
+                                            } else if vestedEmployeesCount > 10 {
+                                                Text("Show All \(vestedEmployeesCount) Vested Employees")
+                                                    .font(.headline)
+                                                    .foregroundColor(.white)
+                                                Image(systemName: "chevron.down")
+                                                    .foregroundColor(.white)
+                                                    .font(.caption)
+                                            } else {
+                                                Text("All \(vestedEmployeesCount) Vested Employees Shown")
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                            Spacer()
+                                        }
+                                        if totalEmployeesInSystem > vestedEmployeesCount {
+                                            VStack(spacing: 2) {
+                                                Text("(\(totalEmployeesInSystem - vestedEmployeesCount) not yet vested)")
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                                Text("Note: For new system-wide inductions where all are immediately vested, temporarily reduce vestment to 1 year in Configuration")
+                                                    .font(.caption2)
+                                                    .foregroundColor(.secondary)
+                                                    .multilineTextAlignment(.center)
+                                                    .padding(.horizontal, 8)
+                                            }
+                                        }
                                     }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 14)
+                                    .background(vestedEmployeesCount > 10 ? Color.blue : Color(.systemGray5))
+                                    .cornerRadius(10)
                                 }
-                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                .buttonStyle(.plain)
                             }
+                            .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
                         }
                     }
                 } else {

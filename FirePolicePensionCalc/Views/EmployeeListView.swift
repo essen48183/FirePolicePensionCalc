@@ -179,7 +179,7 @@ struct EmployeeEditor: View {
             )
         } else {
             // Find next available ID
-            let maxId = (try? EmployeeDataLoader.loadEmployees().map { $0.id }.max()) ?? 0
+            let maxId = EmployeeDataLoader.loadEmployees().map { $0.id }.max() ?? 0
             newEmployee = Employee(
                 id: maxId + 1,
                 name: name,

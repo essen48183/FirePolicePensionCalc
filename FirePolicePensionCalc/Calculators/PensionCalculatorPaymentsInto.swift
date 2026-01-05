@@ -37,7 +37,6 @@ class PensionCalculatorPaymentsInto {
     ) -> Double {
         
         // Convert percentages to decimals
-        let interestRate = expectedInterestRate / 100.0
         let inflationRate = expectedInflationRate / 100.0
         
         // sumDesiredAtRetirement is the amount needed at retirement (100% of lifetime benefits in nominal dollars)

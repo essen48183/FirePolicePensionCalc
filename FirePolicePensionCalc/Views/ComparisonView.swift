@@ -12,6 +12,7 @@ struct ComparisonView: View {
     @State private var comparisonData: ComparisonData?
     @State private var showSaveAlert = false
     @State private var showClearAlert = false
+    @State private var showAllEmployees = false
     
     var body: some View {
         NavigationView {
@@ -71,7 +72,8 @@ struct ComparisonView: View {
                             comparisonResult: comparison.systemResult,
                             comparisonConfig: comparison.config,
                             comparisonEmployeeCount: comparison.employeeCount,
-                            comparisonDate: comparison.timestamp
+                            comparisonDate: comparison.timestamp,
+                            showAllEmployees: $showAllEmployees
                         )
                         .padding(.horizontal)
                     } else if comparisonData == nil {
@@ -153,6 +155,7 @@ struct ComparisonContentView: View {
     let comparisonConfig: PensionConfiguration
     let comparisonEmployeeCount: Int
     let comparisonDate: Date
+    @Binding var showAllEmployees: Bool
     
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -363,35 +366,78 @@ struct ComparisonContentView: View {
                 
                 // Create a dictionary for quick lookup
                 let comparisonEmployeeDict = Dictionary(uniqueKeysWithValues: comparisonResult.employeeResults.map { ($0.employee.id, $0) })
+                let currentEmployeeIds = Set(currentResult.employeeResults.map { $0.employee.id })
                 
-                ForEach(currentResult.employeeResults) { currentEmployeeResult in
-                    if let comparisonEmployeeResult = comparisonEmployeeDict[currentEmployeeResult.employee.id] {
+                // Get all employees (current + comparison only)
+                let allCurrentEmployees = currentResult.employeeResults
+                let comparisonOnlyEmployees = comparisonResult.employeeResults.filter { !currentEmployeeIds.contains($0.employee.id) }
+                let allEmployeesList = allCurrentEmployees + comparisonOnlyEmployees
+                
+                // Determine which employees to display
+                let employeesToShow = showAllEmployees ? allEmployeesList : Array(allEmployeesList.prefix(10))
+                
+                ForEach(employeesToShow) { employeeResult in
+                    if let comparisonEmployeeResult = comparisonEmployeeDict[employeeResult.employee.id] {
+                        // Employee exists in both
                         EmployeeSideBySideComparisonRow(
-                            currentResult: currentEmployeeResult,
+                            currentResult: employeeResult,
                             comparisonResult: comparisonEmployeeResult,
                             currentConfig: currentConfig,
                             comparisonConfig: comparisonConfig
                         )
-                    } else {
+                    } else if currentEmployeeIds.contains(employeeResult.employee.id) {
                         // Employee exists in current but not in comparison
                         EmployeeSideBySideComparisonRow(
-                            currentResult: currentEmployeeResult,
+                            currentResult: employeeResult,
                             comparisonResult: nil,
                             currentConfig: currentConfig,
                             comparisonConfig: nil
                         )
+                    } else {
+                        // Employee exists in comparison but not in current
+                        EmployeeSideBySideComparisonRow(
+                            currentResult: nil,
+                            comparisonResult: employeeResult,
+                            currentConfig: nil,
+                            comparisonConfig: comparisonConfig
+                        )
                     }
                 }
                 
-                // Show employees that exist in comparison but not in current
-                let currentEmployeeIds = Set(currentResult.employeeResults.map { $0.employee.id })
-                ForEach(comparisonResult.employeeResults.filter { !currentEmployeeIds.contains($0.employee.id) }) { comparisonEmployeeResult in
-                    EmployeeSideBySideComparisonRow(
-                        currentResult: nil,
-                        comparisonResult: comparisonEmployeeResult,
-                        currentConfig: nil,
-                        comparisonConfig: comparisonConfig
-                    )
+                // Show All / Show Less button - always show if there are employees
+                if allEmployeesList.count > 0 {
+                    Button(action: {
+                        showAllEmployees.toggle()
+                    }) {
+                        HStack {
+                            Spacer()
+                            if showAllEmployees && allEmployeesList.count > 10 {
+                                Text("Show Less")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                Image(systemName: "chevron.up")
+                                    .foregroundColor(.white)
+                                    .font(.caption)
+                            } else if allEmployeesList.count > 10 {
+                                Text("Show All \(allEmployeesList.count) Employees")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                Image(systemName: "chevron.down")
+                                    .foregroundColor(.white)
+                                    .font(.caption)
+                            } else {
+                                Text("All \(allEmployeesList.count) Employees Shown")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(allEmployeesList.count > 10 ? Color.blue : Color(.systemGray5))
+                        .cornerRadius(10)
+                    }
+                    .padding(.top, 12)
                 }
             }
         }
